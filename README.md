@@ -2,6 +2,10 @@
 
 > Mostly python-based library and scripts to analyse data
 
+# Install
+
+- _todo_
+
 # Scripts
 
 - _download-raw-text.py_ - Downloads a full text dump of all given links including stripping away HTML tags.
