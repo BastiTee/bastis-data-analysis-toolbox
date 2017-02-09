@@ -1,0 +1,10 @@
+numpy >= 1.6 # numpy
+nltk >= 3.0 # nltk
+autopep8 >= 1.2 # autopep8
+beautysh >= 3.1 # beautysh
+progressbar2 >= 3.1 # progressbar
+requests >= 2.12 # requests
+beautifulsoup4 >= 4.5.3 # bs4
+scipy >= 0.18.1 # scipy
+gensim >= 0.13 # gensim
+git+git://github.com/BastiTee/bastis-python-toolbox.git@HEAD
