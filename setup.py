@@ -30,19 +30,9 @@ setup(
     url='tbd',
     packages=['bdatbx', 'bdatbx_scripts'],
     package_data={'bdatbx': ['resource']},
-    install_requires=[
-        'nltk >= 3.0',
-        'progressbar2 >= 3.1',
-        'requests >= 2.12',
-        'beautifulsoup4 >= 4.5.3',
-        'gensim >= 0.13',
-        'scipy >= 0.18.1',
-        'numpy >= 1.6',
-    ],
+    install_requires=[],
     entry_points={
         'console_scripts': scripts,
     },
     zip_safe=False,
 )
-
-# git+git://github.com/BastiTee/bastis-python-toolbox.git@HEAD

@@ -11,7 +11,7 @@ do
 done
 
 stdoutlog "Removing installed dependencies..."
-cat setup.py | tr "\n" " " | sed -r -e "s/.*install_requires=\[([^]]+)\].*/\1/g" -e "s/[ ]+/\n/g" | grep -e "^'" | tr -d "'" | while read lib
+cat requirements.txt | grep "#" | awk '{print $7}' | while read lib
 do
   python3 -m pip uninstall -y $lib
 done

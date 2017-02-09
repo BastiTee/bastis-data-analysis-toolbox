@@ -1,2 +1,10 @@
-autopep8 >= 1.2 # autopep8
-beautysh >= 3.1 # beautysh
+nltk >= 3.0 # nltk # nltk
+progressbar2 >= 3.1 # progressbar # progressbar2
+requests >= 2.12 # requests # requests
+beautifulsoup4 >= 4.5.3 # bs4 # beautifulsoup4
+gensim >= 0.13 # gensim # gensim
+scipy >= 0.18.1 # scipy # scipy
+numpy >= 1.6 # numpy # numpy
+autopep8 >= 1.2
+beautysh >= 3.1
+git+git://github.com/BastiTee/bastis-python-toolbox.git@HEAD # # # bptbx # bptbx
