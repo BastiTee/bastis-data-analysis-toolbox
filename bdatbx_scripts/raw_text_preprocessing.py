@@ -11,7 +11,8 @@ import shutil
 from threading import Lock
 from argparse import ArgumentParser
 
-from bptbx import b_iotools, b_math, b_threading
+from bptbx import b_iotools, b_threading
+from bdatbx import b_lists
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 
@@ -117,8 +118,8 @@ def preprocess_remove_nonwords(tokens):
 
 
 def preprocess_guess_language(tokens):
-    if (len(b_math.intersect(tokens, sw_en)) > len(
-            b_math.intersect(tokens, sw_de))):
+    if (len(b_lists.intersect(tokens, sw_en)) > len(
+            b_lists.intersect(tokens, sw_de))):
         language = 'en'
         stopwords = sw_en
         stemmer = stem_en
@@ -255,6 +256,7 @@ for lang in ['de', 'en']:
         lang_dict = stem_2_source_dict_en
         stopwords = sw_en
     write_dictionary_to_file(lang_dict, stopwords, label)
+
 
 def main():
     pass

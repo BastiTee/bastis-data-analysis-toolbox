@@ -17,4 +17,4 @@ do
 done
 
 stdoutlog "Cleaning local workspace..."
-rm -vrf bdatbx.egg-info build dist nltk-data _sanity
+rm -vrf _sanity

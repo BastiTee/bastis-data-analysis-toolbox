@@ -2,7 +2,6 @@
 
 cd "$( dirname "$( dirname "$( readlink -f $0 )" )" )"
 source "dev-tools/base.sh"
-is_root
 
 stdoutlog "configuring python version"
 PY="python3"
@@ -44,7 +43,8 @@ done
 stdoutlog "install toolbox"
 
 stdoutlog "Installing globally..."
-./setup.py install
+sudo -H ./setup.py install
+sudo -H rm -vrf bdatbx.egg-info build dist 
 
 stdoutlog "Listing content in egg..."
 find $( find /usr/local/ -type d -iname "*bdatbx*" | head -n1 )
