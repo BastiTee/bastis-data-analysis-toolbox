@@ -34,11 +34,11 @@ ${run_pfx}.parse_rss_feed -i "http://www.spiegel.de/index.rss" \
 -o ${workdir}/00-rss-links.txt -l
 echo "Parsed $( cat ${workdir}/00-rss-links.txt | wc -l ) article links."
 ${run_pfx}.download_website -i ${workdir}/00-rss-links.txt -o ${html}
-${run_pfx}.extract_raw_text -i ${html} -o ${rawtext}
-${run_pfx}.raw_text_preprocessing -i ${rawtext} -o ${tokens} \
+${run_pfx}.extract_raw_text_from_website -i ${html} -o ${rawtext}
+${run_pfx}.tokenize_raw_text -i ${rawtext} -o ${tokens} \
 -n nltk-data
-${run_pfx}.text_statistics -i ${tokens} -o ${tstats}
-${run_pfx}.generate_topic_model -i ${tokens} -o ${topics}
+${run_pfx}.gather_statistics -i ${tokens} -o ${tstats}
+${run_pfx}.generate_topic_models -i ${tokens} -o ${topics}
 
 [ $temp_only == 1 ] && {
     rm -rf $workdir
