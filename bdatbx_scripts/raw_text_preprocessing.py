@@ -19,10 +19,15 @@ from nltk.stem.snowball import SnowballStemmer
 # --- CMD LINE PARSING BEGIN --------------------------------------------------
 parser = ArgumentParser(
     description="Preprocess main textual content previously downloaded.")
+parser.add_argument("-i", metavar="INPUT",
+                    help="Input directory containing raw fulltext files.")
+parser.add_argument("-o", metavar="OUTPUT",
+                    help="Output directory.")
+parser.add_argument("-n", metavar="NLTK",
+                    help="Path to nltk directory.")
+
 parser.add_argument("-t", metavar="<THREADS>",
                     help="Number of threads", default=10)
-parser.add_argument("-f", action="store_true",
-                    help="Run full data mode", default=False)
 args = parser.parse_args()
 
 
@@ -37,15 +42,28 @@ except ValueError:
     show_help('Invalid number of threads.')
 if int(args.t) <= 0:
     show_help('Invalid number of threads.')
-# setup nltk
-file_limit = 250
-if args.f:
-    file_limit = 0
 
-print('-- full-data mode: {}'.format(args.f))
 print('-- threads used: {}'.format(args.t))
 
-# --- CMD LINE PARSING END ----------------------------------------------------
+if not args.i:
+    show_help('No input directory set.')
+if not os.path.isdir(args.i):
+    show_help("Input directory does not exist.")
+input_dir = os.path.abspath(args.i)
+
+nltk_data = None
+if args.n and os.path.isdir(args.n):
+    nltk_path = os.path.abspath(args.n)
+    nltk.data.path.append(nltk_path)
+    print('-- added nltk path {}'.format(nltk_path))
+
+if not args.o:
+    show_help('No output directory set.')
+if not os.path.isdir(args.o):
+    show_help("Output directory does not exist.")
+working_dir = os.path.abspath(args.o)
+os.chdir(working_dir)
+print('-- now in working dir {}'.format(os.getcwd()))
 
 # setup globals
 global_progressbar = None
@@ -66,37 +84,20 @@ def update_global_process(dataset):
         global_progress += 1
         global_progressbar.update(global_progress)
 
-# handle sanity mode
-working_dir = '_full_parse'
-if args.f == False:
-    print("-- switching to sanity mode")
-    working_dir = '_sanity'
+# def extend_stopwords(language, stopwords):
+#     source = 'stopwords_{}_add.txt'.format(language)
+#     add_stopwords = []
+#     if b_iotools.file_exists(os.path.join('..', 'resource', source)):
+#         print('-- attaching manual set of stopwords from {}'.format(source))
+#         add_stopwords = b_iotools.read_file_to_list(os.path.join('..', source))
+#     stopwords = stopwords + add_stopwords
+#     stopwords = list(filter(None, set(stopwords)))
+#     return stopwords
 
-# setup environment
-try:
-    os.chdir(working_dir)
-except FileNotFoundError:
-    show_help('You need to run the download-step first.')
-print('-- changed to: {}'.format(os.getcwd()))
-
-
-def extend_stopwords(language, stopwords):
-    source = 'stopwords_{}_add.txt'.format(language)
-    add_stopwords = []
-    if b_iotools.file_exists(os.path.join('..', 'resource', source)):
-        print('-- attaching manual set of stopwords from {}'.format(source))
-        add_stopwords = b_iotools.read_file_to_list(os.path.join('..', source))
-    stopwords = stopwords + add_stopwords
-    stopwords = list(filter(None, set(stopwords)))
-    return stopwords
-
-nltk.data.path.append(os.path.join('..', 'nltk-data'))
 stem_en = SnowballStemmer('english', ignore_stopwords=False)
 stem_de = SnowballStemmer('german', ignore_stopwords=False)
-sw_en = [stem_en.stem(sw) for sw in extend_stopwords(
-    'en', stopwords.words('english'))]
-sw_de = [stem_de.stem(sw) for sw in extend_stopwords(
-    'de', stopwords.words('german'))]
+sw_en = [stem_en.stem(sw) for sw in stopwords.words('english')]
+sw_de = [stem_de.stem(sw) for sw in stopwords.words('german')]
 stem_2_source_dict_en = {}
 stem_2_source_dict_de = {}
 
@@ -188,11 +189,13 @@ def write_dictionary_to_file(dictionary, stopwords, filename):
 
 
 def preprocess_worker(worker_set):
-    if not worker_set[3] or not b_iotools.file_exists(worker_set[3]):
+    in_file = os.path.join(input_dir, worker_set[3])
+    if not in_file or not b_iotools.file_exists(in_file):
+        print('   + warning: {} not found.'.format(in_file))
         update_global_process(worker_set)
         return
-    in_file = worker_set[3]
-    out_file = re.sub('^fulltext', 'preproc', in_file)
+    out_file = os.path.join(working_dir, worker_set[3])
+
     if b_iotools.file_exists(out_file):
         update_global_process(worker_set)
         return
@@ -216,17 +219,18 @@ def preprocess_worker(worker_set):
     worker_set[5] = language
     worker_set[6] = total_words
     worker_set[7] = len(tokens)
-    worker_set[8] = out_file
     update_global_process(worker_set)
 
 # main processing loop
-global_process_log_file = os.path.join(os.getcwd(), 'process_log.csv')
+global_log_in = os.path.join(input_dir, 'process_log.csv')
+global_log_out = os.path.join(working_dir, 'process_log.csv')
+
 plain_datasets = []
-with open(global_process_log_file, 'r') as csvfile:
+with open(global_log_in, 'r') as csvfile:
     datasets = csv.reader(csvfile, delimiter=';', quotechar='"')
     for dataset in datasets:
         plain_datasets.append(dataset)
-
+print("-- read {} datasets.".format(len(plain_datasets)))
 global_progressbar = progressbar.ProgressBar(max_value=len(plain_datasets))
 for plain_dataset in plain_datasets:
     preprocess_worker(plain_dataset)
@@ -237,8 +241,7 @@ csvfile.close()
 
 print("-- done preprocessing.")
 print("-- writing new data points.")
-os.remove(global_process_log_file)
-with open(global_process_log_file, 'w') as csvfile:
+with open(global_log_out, 'w') as csvfile:
     log_writer = csv.writer(csvfile, delimiter=';',
                             quotechar='"', quoting=csv.QUOTE_MINIMAL)
     for plain_dataset in global_plain_datasets_ext:

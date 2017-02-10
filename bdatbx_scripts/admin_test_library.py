@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 from tempfile import mkdtemp
 from shutil import rmtree
 import unittest

@@ -2,6 +2,7 @@
 _sanity/
 _full_parse/
 nltk-data/
+_test/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

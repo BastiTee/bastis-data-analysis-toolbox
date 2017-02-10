@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+from re import sub
+from bptbx import b_iotools
 from argparse import ArgumentParser
 import feedparser
 
-# --- CMD LINE PARSING BEGIN --------------------------------------------------
 parser = ArgumentParser(
     description="Parse RSS feed.")
-parser.add_argument("-i", help="Feed address")
+parser.add_argument("-i", metavar='FEED', help="RSS feed URL")
+parser.add_argument("-o", metavar='OUTPUT', help="Output data file")
 parser.add_argument("-l", action="store_true",
-                    help="Only print links.", default=False)
+                    help="Only extract 'link' tag.", default=False)
+parser.add_argument("-v", action="store_true",
+                    help="Verbose output.", default=False)
 args = parser.parse_args()
 
 
@@ -20,16 +24,21 @@ def show_help(message):
 
 if args.i is None:
     show_help("No feed URL provided.")
-
+if args.o is None:
+    show_help("No output file provided.")
+if b_iotools.file_exists(args.o):
+    show_help("Output file already exists.")
 
 fp = feedparser.parse(args.i)
+ofile = open(args.o, 'w')
 
 if args.l is True:
     for entry in fp['entries']:
-        print(entry['link'])
+        output = entry['link']
+        if args.v:
+            print(output)
+        ofile.write(output + '\n')
+    ofile.close()
     exit(0)
 
-print('-- more soon --')
-
-
-# http://www.spiegel.de/index.rss
+ofile.close()
