@@ -31,9 +31,9 @@ mkdir -vp ${topics}
 run_pfx="python3 -m bdatbx_scripts"
 ${run_pfx}.admin_test_library
 ${run_pfx}.parse_rss_feed -i "http://www.spiegel.de/index.rss" \
--o ${workdir}/rss-links.txt -l
-echo "Parsed $( cat ${workdir}/rss-links.txt | wc -l ) article links."
-${run_pfx}.download_website -i ${workdir}/rss-links.txt -o ${html}
+-o ${workdir}/00-rss-links.txt -l
+echo "Parsed $( cat ${workdir}/00-rss-links.txt | wc -l ) article links."
+${run_pfx}.download_website -i ${workdir}/00-rss-links.txt -o ${html}
 ${run_pfx}.extract_raw_text -i ${html} -o ${rawtext}
 ${run_pfx}.raw_text_preprocessing -i ${rawtext} -o ${tokens} \
 -n nltk-data

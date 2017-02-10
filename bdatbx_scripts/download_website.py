@@ -62,16 +62,11 @@ input_lines = b_iotools.countlines(args.i)
 global_progressbar = None
 global_progress = 0
 global_progressbar_lock = Lock()
-global_logfile_lock = Lock()
 
 
 def write_to_process_log(
         link, permakey, res_code='', out_file='', out_file_size=''):
-    global global_process_log_file
-    with global_logfile_lock:
-        global_process_log_file.write('{};\"{}\";{};\"{}\";{}\n'.format(
-            permakey, link, res_code, out_file, out_file_size))
-
+    pass
 
 def update_global_process():
     with global_progressbar_lock:
@@ -81,11 +76,6 @@ def update_global_process():
             return
         global_progress += 1
         global_progressbar.update(global_progress)
-
-# setup folders
-global_process_log_file = open(
-    os.path.join(working_dir, 'process_log.csv'), 'w')
-
 
 def fulltext_extraction(link):
     # permakey generation
@@ -134,7 +124,6 @@ input_file.close()
 pool.wait_completion()
 if global_progressbar:
     global_progressbar.finish()
-global_process_log_file.close()
 
 
 def main():

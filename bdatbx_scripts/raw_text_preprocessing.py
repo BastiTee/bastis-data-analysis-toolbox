@@ -218,9 +218,6 @@ def preprocess_worker(worker_set):
     update_global_process(worker_set)
 
 # main processing loop
-global_log_in = os.path.join(input_dir, 'process_log.csv')
-global_log_out = os.path.join(working_dir, 'process_log.csv')
-
 in_files = b_iotools.findfiles(input_dir, '.*\\.txt')
 input_lines = len(in_files)
 
@@ -229,7 +226,6 @@ for in_file in in_files:
     preprocess_worker(in_file)
 if global_progressbar:
     global_progressbar.finish()
-
 
 print("-- done preprocessing.")
 
