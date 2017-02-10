@@ -36,15 +36,6 @@ print('-- now in working dir {}'.format(os.getcwd()))
 
 # --- CMD LINE PARSING END ----------------------------------------------------
 
-global_log_in=os.path.join(input_dir, 'process_log.csv')
-global_log_out=os.path.join(working_dir, 'process_log.csv')
-
-plain_datasets=[]
-with open(global_log_in, 'r') as csvfile:
-    datasets=csv.reader(csvfile, delimiter = ';', quotechar = '"')
-    for dataset in datasets:
-        plain_datasets.append(dataset)
-csvfile.close()
 
 # CURRENT FORMAT:
 #  [0] - Generated permakey
@@ -56,41 +47,41 @@ csvfile.close()
 #  [6] - Total number of tokens
 #  [7] - Total number of stemmed and stopword-cleared tokens
 #  [8] - Path to tokenized text data
-
-total_usable=0
-total_de=0
-total_en=0
-min_tokens=None
-max_tokens=None
-total_tokens=None
-avg_tokens=None
-for d in plain_datasets:
-    if d[2] != '200' or not d[7] or not int(d[7]) > 10:
-        continue
-    total_usable += 1
-    if d[5] == 'en':
-        total_en += 1
-    else:
-        total_de += 1
-    if total_usable == 1:
-        min_tokens=max_tokens=avg_tokens=total_tokens=int(d[7])
-    else:
-        min_tokens=min(min_tokens, int(d[7]))
-        max_tokens=max(max_tokens, int(d[7]))
-        total_tokens += int(d[7])
-        avg_tokens=total_tokens / total_usable
-
-
-print('-- datasets')
-print('   + total:    {}'.format(len(plain_datasets)))
-print('   + usable:   {}'.format(total_usable))
-print('   + german:   {}'.format(total_de))
-print('   + english:  {}'.format(total_en))
-print('-- tokens')
-print('   + total:    {}'.format(total_tokens))
-print('   + min:      {}'.format(min_tokens))
-print('   + max:      {}'.format(max_tokens))
-print('   + avg:      {}'.format(int(avg_tokens)))
+#
+# total_usable=0
+# total_de=0
+# total_en=0
+# min_tokens=None
+# max_tokens=None
+# total_tokens=None
+# avg_tokens=None
+# for d in plain_datasets:
+#     if d[2] != '200' or not d[7] or not int(d[7]) > 10:
+#         continue
+#     total_usable += 1
+#     if d[5] == 'en':
+#         total_en += 1
+#     else:
+#         total_de += 1
+#     if total_usable == 1:
+#         min_tokens=max_tokens=avg_tokens=total_tokens=int(d[7])
+#     else:
+#         min_tokens=min(min_tokens, int(d[7]))
+#         max_tokens=max(max_tokens, int(d[7]))
+#         total_tokens += int(d[7])
+#         avg_tokens=total_tokens / total_usable
+#
+#
+# print('-- datasets')
+# print('   + total:    {}'.format(len(plain_datasets)))
+# print('   + usable:   {}'.format(total_usable))
+# print('   + german:   {}'.format(total_de))
+# print('   + english:  {}'.format(total_en))
+# print('-- tokens')
+# print('   + total:    {}'.format(total_tokens))
+# print('   + min:      {}'.format(min_tokens))
+# print('   + max:      {}'.format(max_tokens))
+# print('   + avg:      {}'.format(int(avg_tokens)))
 
 def main():
     pass

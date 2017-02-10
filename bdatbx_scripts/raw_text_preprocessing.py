@@ -189,13 +189,14 @@ def write_dictionary_to_file(dictionary, stopwords, filename):
 
 
 def preprocess_worker(worker_set):
-    in_file = os.path.join(input_dir, worker_set[3])
     if not in_file or not b_iotools.file_exists(in_file):
         print('   + warning: {} not found.'.format(in_file))
         update_global_process(worker_set)
         return
-    out_file = os.path.join(working_dir, worker_set[3])
-
+    basename = os.path.basename(in_file)
+    dirn = basename[:16]
+    b_iotools.mkdirs(dirn)
+    out_file = os.path.join(dirn, basename)
     if b_iotools.file_exists(out_file):
         update_global_process(worker_set)
         return
@@ -214,39 +215,23 @@ def preprocess_worker(worker_set):
     b_iotools.write_list_to_file(tokens, out_file)
     # ------------------------------------------------
     # save newly gathered information
-    while len(worker_set) < 9:
-        worker_set.append('')
-    worker_set[5] = language
-    worker_set[6] = total_words
-    worker_set[7] = len(tokens)
     update_global_process(worker_set)
 
 # main processing loop
 global_log_in = os.path.join(input_dir, 'process_log.csv')
 global_log_out = os.path.join(working_dir, 'process_log.csv')
 
-plain_datasets = []
-with open(global_log_in, 'r') as csvfile:
-    datasets = csv.reader(csvfile, delimiter=';', quotechar='"')
-    for dataset in datasets:
-        plain_datasets.append(dataset)
-print("-- read {} datasets.".format(len(plain_datasets)))
-global_progressbar = progressbar.ProgressBar(max_value=len(plain_datasets))
-for plain_dataset in plain_datasets:
-    preprocess_worker(plain_dataset)
+in_files = b_iotools.findfiles(input_dir, '.*\\.txt')
+input_lines = len(in_files)
+
+global_progressbar = progressbar.ProgressBar(max_value=input_lines)
+for in_file in in_files:
+    preprocess_worker(in_file)
 if global_progressbar:
     global_progressbar.finish()
-csvfile.close()
 
 
 print("-- done preprocessing.")
-print("-- writing new data points.")
-with open(global_log_out, 'w') as csvfile:
-    log_writer = csv.writer(csvfile, delimiter=';',
-                            quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    for plain_dataset in global_plain_datasets_ext:
-        log_writer.writerow(plain_dataset)
-csvfile.close()
 
 print("-- writing token dictionaries.")
 for lang in ['de', 'en']:
