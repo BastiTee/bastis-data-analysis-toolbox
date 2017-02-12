@@ -83,8 +83,11 @@ class MainTestSuite(unittest.TestCase):
 
 
 def main():
+    from bdatbx import b_util
+    b_util.log('Invoking test suite...')
     suite = unittest.TestLoader().loadTestsFromTestCase(MainTestSuite)
     unittest.TextTestRunner(verbosity=2).run(suite)
+    b_util.log('Finished test suite...')
 
 if __name__ == '__main__':
     main()

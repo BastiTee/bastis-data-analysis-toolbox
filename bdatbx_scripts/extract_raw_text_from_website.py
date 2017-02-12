@@ -20,7 +20,6 @@ from bptbx import b_iotools, b_threading, b_web
 import os
 from bdatbx import b_util
 
-
 def worker(in_file):
     fulltext = '\n'.join(b_iotools.read_file_to_list(in_file))
     basename = os.path.basename(in_file)

@@ -25,7 +25,6 @@ from bdatbx import b_lists, b_util
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 
-
 def tokenize(text_lines):
     tokens = []
     for text_line in text_lines:
@@ -115,7 +114,7 @@ def write_dictionary_to_file(dictionary, stopwords, filename):
 
 def worker(worker_set):
     if not in_file or not b_iotools.file_exists(in_file):
-        print('   + warning: {} not found.'.format(in_file))
+
         update_global_process(worker_set)
         return
     basename = os.path.basename(in_file)
@@ -144,7 +143,7 @@ def worker(worker_set):
 # setup NLTK
 if args.n:
     nltk.data.path.append(args.n)
-    print('-- added nltk path {}'.format(args.n))
+    b_util.log('added nltk path {}'.format(args.n))
 stem_en = SnowballStemmer('english', ignore_stopwords=False)
 stem_de = SnowballStemmer('german', ignore_stopwords=False)
 sw_en = [stem_en.stem(sw) for sw in stopwords.words('english')]

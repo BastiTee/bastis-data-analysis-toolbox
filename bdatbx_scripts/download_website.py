@@ -6,32 +6,34 @@ from __future__ import with_statement
 # ------------------------------------------------------------ CMD-LINE-PARSING
 from bdatbx import b_cmdprs
 prs = b_cmdprs.init('Dump website content of given URLs to text files')
-b_cmdprs.add_file_in(prs)
+b_cmdprs.add_dir_in(prs)
 b_cmdprs.add_dir_out(prs)
 b_cmdprs.add_max_threads(prs)
 b_cmdprs.add_verbose(prs)
 args = prs.parse_args()
-b_cmdprs.check_file_in(prs, args)
+b_cmdprs.check_dir_in(prs, args)
 b_cmdprs.check_dir_out_and_chdir(prs, args)
 b_cmdprs.check_max_threads(prs, args)
 # -----------------------------------------------------------------------------
 
 from bptbx import b_iotools, b_threading
 from os import path
+import time
 import requests
 from bdatbx import b_util
+import feedparser
 
 
-def worker(link):
-    file_key, dir_key = b_util.get_key_from_url(link)
+def worker(url):
+    file_key, dir_key = b_util.get_key_from_url(url)
     raw_fname = path.join(dir_key, file_key + '.txt')
 
     if not b_iotools.file_exists(raw_fname):
         try:
-            r = requests.get(link, timeout=10)
+            r = requests.get(url, timeout=10)
             res_code = r.status_code
         except Exception as e:
-            print('   + ERROR for \'{}\': {}'.format(link, e))
+            b_util.log('ERROR for \'{}\': {}'.format(url, e))
             b_util.update_progressbar()
             return
         if res_code is not 200:
@@ -49,14 +51,14 @@ def worker(link):
             res_size = b_iotools.get_file_size(raw_fname)
     b_util.update_progressbar()
 
-input_file = open(args.i)
-item_count = b_iotools.countlines(args.i)
-b_util.setup_progressbar(item_count)
+in_files = b_iotools.findfiles(args.i, '.*\\.txt')
+b_util.setup_progressbar(len(in_files))
 pool = b_threading.ThreadPool(args.t)
-for idx, content in enumerate(input_file):
-    content = content.strip()
-    pool.add_task(worker, content)
-input_file.close()
+for in_file in in_files:
+    content = ''.join(b_iotools.read_file_to_list(in_file))
+    entry = b_util.json_to_object(content)
+    url = entry['link']
+    pool.add_task(worker, url)
 pool.wait_completion()
 b_util.finish_progressbar()
 

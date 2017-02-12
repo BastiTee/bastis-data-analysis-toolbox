@@ -13,6 +13,7 @@ b_cmdprs.check_dir_out_and_chdir(prs, args)
 # -----------------------------------------------------------------------------
 
 from bptbx import b_iotools
+from bdatbx import b_util
 
 # CURRENT FORMAT:
 #  [0] - Generated permakey
@@ -49,16 +50,16 @@ from bptbx import b_iotools
 #         avg_tokens=total_tokens / total_usable
 #
 #
-# print('-- datasets')
-# print('   + total:    {}'.format(len(plain_datasets)))
-# print('   + usable:   {}'.format(total_usable))
-# print('   + german:   {}'.format(total_de))
-# print('   + english:  {}'.format(total_en))
-# print('-- tokens')
-# print('   + total:    {}'.format(total_tokens))
-# print('   + min:      {}'.format(min_tokens))
-# print('   + max:      {}'.format(max_tokens))
-# print('   + avg:      {}'.format(int(avg_tokens)))
+# b_util.log('-- datasets')
+# b_util.log('   + total:    {}'.format(len(plain_datasets)))
+# b_util.log('   + usable:   {}'.format(total_usable))
+# b_util.log('   + german:   {}'.format(total_de))
+# b_util.log('   + english:  {}'.format(total_en))
+# b_util.log('-- tokens')
+# b_util.log('   + total:    {}'.format(total_tokens))
+# b_util.log('   + min:      {}'.format(min_tokens))
+# b_util.log('   + max:      {}'.format(max_tokens))
+# b_util.log('   + avg:      {}'.format(int(avg_tokens)))
 
 
 def main():
