@@ -1,44 +1,38 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
-from re import sub
-from bptbx import b_iotools
-from argparse import ArgumentParser
+
+# ------------------------------------------------------------ CMD-LINE-PARSING
+from bdatbx import b_cmdprs
+prs = b_cmdprs.init('Parse RSS feed URLs from file and store raw metadata')
+b_cmdprs.add_file_in(prs)
+b_cmdprs.add_file_out(prs)
+b_cmdprs.add_bool(prs, '-l', 'Only extract \'link\' tag.')
+b_cmdprs.add_verbose(prs)
+args = prs.parse_args()
+b_cmdprs.check_file_in(prs, args)
+b_cmdprs.check_file_out(prs, args)
+# -----------------------------------------------------------------------------
+
 import feedparser
+from bptbx.b_iotools import read_file_to_list
 
-parser = ArgumentParser(
-    description="Parse RSS feed.")
-parser.add_argument("-i", metavar='FEED', help="RSS feed URL")
-parser.add_argument("-o", metavar='OUTPUT', help="Output data file")
-parser.add_argument("-l", action="store_true",
-                    help="Only extract 'link' tag.", default=False)
-parser.add_argument("-v", action="store_true",
-                    help="Verbose output.", default=False)
-args = parser.parse_args()
+input_feeds = read_file_to_list(args.i)
+out_file = open(args.o, 'w')
+for input_feed in input_feeds:
+    fp = feedparser.parse(input_feed)
 
-
-def show_help(message):
-    print(message)
-    parser.print_help()
-    exit(1)
-
-if args.i is None:
-    show_help("No feed URL provided.")
-if args.o is None:
-    show_help("No output file provided.")
-if b_iotools.file_exists(args.o):
-    show_help("Output file already exists.")
-
-fp = feedparser.parse(args.i)
-ofile = open(args.o, 'w')
-
-if args.l is True:
     for entry in fp['entries']:
-        output = entry['link']
+        if args.l is True:
+            output = entry['link']
+        else:
+            output = str(entry)
+
         if args.v:
             print(output)
-        ofile.write(output + '\n')
-    ofile.close()
-    exit(0)
+        out_file.write(output + '\n')
 
-ofile.close()
+out_file.close()
+
+
+def main():
+    pass

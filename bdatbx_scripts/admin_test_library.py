@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 from tempfile import mkdtemp
 from shutil import rmtree
 import unittest
@@ -13,8 +14,9 @@ class MainTestSuite(unittest.TestCase):
         # ------------
         result = b_lists.split_list_to_equal_buckets(
             [1, 2, 3, 4, 5, 6, 7, 8], 3)
-        self.assertEqual(result,
-                         [[1.0, 2.0, 3.0], [4.0, 5.0], [6.0, 7.0, 8.0]])
+        self.assertEqual(
+            result,
+            [[1.0, 2.0, 3.0], [4.0, 5.0], [6.0, 7.0, 8.0]])
         self.assertRaises(
             ValueError, b_lists.split_list_to_equal_buckets, None)
         self.assertRaises(ValueError, b_lists.split_list_to_equal_buckets, [])
@@ -84,5 +86,5 @@ def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(MainTestSuite)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

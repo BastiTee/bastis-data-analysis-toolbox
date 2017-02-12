@@ -1,88 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 from __future__ import with_statement
-from argparse import ArgumentParser
-from bptbx import b_iotools, b_threading, b_web
-import os
-from threading import Lock
-from re import sub, match
-import shutil
+
+# ------------------------------------------------------------ CMD-LINE-PARSING
+from bdatbx import b_cmdprs
+prs = b_cmdprs.init('Dump website content of given URLs to text files')
+b_cmdprs.add_file_in(prs)
+b_cmdprs.add_dir_out(prs)
+b_cmdprs.add_max_threads(prs)
+b_cmdprs.add_verbose(prs)
+args = prs.parse_args()
+b_cmdprs.check_file_in(prs, args)
+b_cmdprs.check_dir_out_and_chdir(prs, args)
+b_cmdprs.check_max_threads(prs, args)
+# -----------------------------------------------------------------------------
+
+from bptbx import b_iotools, b_threading
+from os import path
 import requests
-import bs4
-import progressbar
 from bdatbx import b_util
 
 
-# --- CMD LINE PARSING BEGIN --------------------------------------------------
-parser = ArgumentParser(
-    description="Dump main textual content of given URLs to text files.")
-parser.add_argument("-i", metavar="INPUT",
-                    help="Flat input text file with URLS.")
-parser.add_argument("-o", metavar="OUTPUT",
-                    help="Output directory.")
-parser.add_argument("-t", metavar="THREADS",
-                    help="Number of threads", default=10)
-args = parser.parse_args()
-
-
-def show_help(message):
-    print(message)
-    parser.print_help()
-    exit(1)
-
-if not args.i:
-    show_help('No input file set.')
-if not b_iotools.file_exists(args.i):
-    show_help('Input file does not exist.')
-args.i = os.path.abspath(args.i)
-if not args.o:
-    show_help('No output directory set.')
-if not os.path.isdir(args.o):
-    show_help("Output directory does not exist.")
-working_dir = os.path.abspath(args.o)
-os.chdir(working_dir)
-print('-- now in working dir {}'.format(os.getcwd()))
-
-try:
-    int(args.t)
-except ValueError:
-    show_help('Invalid number of threads.')
-if int(args.t) <= 0:
-    show_help('Invalid number of threads.')
-
-print('-- using input file: {}'.format(args.i))
-print('-- threads used: {}'.format(args.t))
-# --- CMD LINE PARSING END ----------------------------------------------------
-
-# change to full parse folder
-print('-- changed to: {}'.format(os.getcwd()))
-
-# setup globals
-input_lines = b_iotools.countlines(args.i)
-global_progressbar = None
-global_progress = 0
-global_progressbar_lock = Lock()
-
-
-def write_to_process_log(
-        link, permakey, res_code='', out_file='', out_file_size=''):
-    pass
-
-def update_global_process():
-    with global_progressbar_lock:
-        global global_progress
-        global global_progressbar
-        if not global_progressbar:
-            return
-        global_progress += 1
-        global_progressbar.update(global_progress)
-
-def fulltext_extraction(link):
-    # permakey generation
-    permakey = b_util.get_key_from_url(link)
-    # preparing output files
-    dirn = permakey[:16]
-    raw_fname = os.path.join(dirn, permakey + '.txt')
+def worker(link):
+    file_key, dir_key = b_util.get_key_from_url(link)
+    raw_fname = path.join(dir_key, file_key + '.txt')
 
     if not b_iotools.file_exists(raw_fname):
         try:
@@ -90,40 +32,33 @@ def fulltext_extraction(link):
             res_code = r.status_code
         except Exception as e:
             print('   + ERROR for \'{}\': {}'.format(link, e))
-            write_to_process_log(link, permakey, 'ERR')
-            update_global_process()
+            b_util.update_progressbar()
             return
         if res_code is not 200:
-            write_to_process_log(link, permakey, res_code)
-            update_global_process()
+            b_util.update_progressbar()
             return
 
-        b_iotools.mkdirs(dirn)
+        b_iotools.mkdirs(dir_key)
 
         f_handle = open(raw_fname, 'w')
         f_handle.write(r.text)
         f_handle.close()
 
         if b_iotools.file_exists(raw_fname):
-            if not global_progressbar:
-                print('   + {}'.format(raw_fname))
             res_file = raw_fname
             res_size = b_iotools.get_file_size(raw_fname)
-            write_to_process_log(link, permakey, res_code, res_file, res_size)
-        else:
-            write_to_process_log(link, permakey, res_code)
-    update_global_process()
+    b_util.update_progressbar()
 
 input_file = open(args.i)
-pool = b_threading.ThreadPool(int(args.t))
-global_progressbar = progressbar.ProgressBar(max_value=input_lines)
+item_count = b_iotools.countlines(args.i)
+b_util.setup_progressbar(item_count)
+pool = b_threading.ThreadPool(args.t)
 for idx, content in enumerate(input_file):
     content = content.strip()
-    pool.add_task(fulltext_extraction, content)
+    pool.add_task(worker, content)
 input_file.close()
 pool.wait_completion()
-if global_progressbar:
-    global_progressbar.finish()
+b_util.finish_progressbar()
 
 
 def main():

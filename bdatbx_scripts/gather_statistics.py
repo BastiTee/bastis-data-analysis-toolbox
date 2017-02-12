@@ -1,41 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
-import csv
-from argparse import ArgumentParser
+
+# ------------------------------------------------------------ CMD-LINE-PARSING
+from bdatbx import b_cmdprs
+prs = b_cmdprs.init('Generate basic token statistics')
+b_cmdprs.add_dir_in(prs)
+b_cmdprs.add_dir_out(prs)
+b_cmdprs.add_verbose(prs)
+args = prs.parse_args()
+b_cmdprs.check_dir_in(prs, args)
+b_cmdprs.check_dir_out_and_chdir(prs, args)
+# -----------------------------------------------------------------------------
+
 from bptbx import b_iotools
-
-# --- CMD LINE PARSING BEGIN --------------------------------------------------
-parser = ArgumentParser(
-    description="Gather some text statistics.")
-parser.add_argument("-i", metavar="INPUT",
-                    help="Input directory containing raw fulltext files.")
-parser.add_argument("-o", metavar="OUTPUT",
-                    help="Output directory.")
-args = parser.parse_args()
-
-
-def show_help(message):
-    print(message)
-    parser.print_help()
-    exit(1)
-
-if not args.i:
-    show_help('No input directory set.')
-if not os.path.isdir(args.i):
-    show_help("Input directory does not exist.")
-input_dir = os.path.abspath(args.i)
-
-if not args.o:
-    show_help('No output directory set.')
-if not os.path.isdir(args.o):
-    show_help("Output directory does not exist.")
-working_dir = os.path.abspath(args.o)
-os.chdir(working_dir)
-print('-- now in working dir {}'.format(os.getcwd()))
-
-# --- CMD LINE PARSING END ----------------------------------------------------
-
 
 # CURRENT FORMAT:
 #  [0] - Generated permakey
@@ -82,6 +59,7 @@ print('-- now in working dir {}'.format(os.getcwd()))
 # print('   + min:      {}'.format(min_tokens))
 # print('   + max:      {}'.format(max_tokens))
 # print('   + avg:      {}'.format(int(avg_tokens)))
+
 
 def main():
     pass

@@ -4,33 +4,37 @@
 cd "$( dirname "$( dirname "$( readlink -f $0 )" )" )"
 echo -e "@ $( pwd )\n"
 
-# create a temporary work directory
 [ -z "$1" ] && {
-    workdir=$( mktemp -d )
-    temp_only=1
-} || {
-    workdir=$1
-    temp_only=0
+  # create a temporary work directory
+  workdir=$( mktemp -d )
+  temp_only=1
+  } || {
+  workdir=$1
+  temp_only=0
 }
 [ ! -d "$workdir" ] && {
-    echo "Parameter must be a working directory."; exit 1;
+  echo "Parameter must be a working directory."; exit 1;
 }
 
+# setup files and folders
 html="${workdir}/01-html"
 rawtext="${workdir}/02-raw-text"
 tokens="${workdir}/03-tokens"
 tstats="${workdir}/04-text-stats"
 topics="${workdir}/05-topic-models"
-
-mkdir -vp ${html}
-mkdir -vp ${rawtext}
-mkdir -vp ${tokens}
-mkdir -vp ${tstats}
-mkdir -vp ${topics}
+mkdir -p ${html}
+mkdir -p ${rawtext}
+mkdir -p ${tokens}
+mkdir -p ${tstats}
+mkdir -p ${topics}
+cat << EOF > "${workdir}/00-rss-feeds.txt"
+http://www.spiegel.de/index.rss
+http://www.faz.net/rss/aktuell
+EOF
 
 run_pfx="python3 -m bdatbx_scripts"
 ${run_pfx}.admin_test_library
-${run_pfx}.parse_rss_feed -i "http://www.spiegel.de/index.rss" \
+${run_pfx}.parse_rss_feed -i "${workdir}/00-rss-feeds.txt" \
 -o ${workdir}/00-rss-links.txt -l
 echo "Parsed $( cat ${workdir}/00-rss-links.txt | wc -l ) article links."
 ${run_pfx}.download_website -i ${workdir}/00-rss-links.txt -o ${html}
@@ -41,6 +45,6 @@ ${run_pfx}.gather_statistics -i ${tokens} -o ${tstats}
 ${run_pfx}.generate_topic_models -i ${tokens} -o ${topics}
 
 [ $temp_only == 1 ] && {
-    rm -rf $workdir
-    echo "Deleted $workdir"
+  rm -rf $workdir
+  echo "Deleted $workdir"
 }

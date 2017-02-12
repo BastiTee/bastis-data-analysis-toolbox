@@ -1,47 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+# ------------------------------------------------------------ CMD-LINE-PARSING
+from bdatbx import b_cmdprs
+prs = b_cmdprs.init('Generate LDA-based topic models')
+b_cmdprs.add_dir_in(prs)
+b_cmdprs.add_dir_out(prs)
+b_cmdprs.add_verbose(prs)
+args = prs.parse_args()
+b_cmdprs.check_dir_in(prs, args)
+b_cmdprs.check_dir_out_and_chdir(prs, args)
+# -----------------------------------------------------------------------------
+
 import os
 from argparse import ArgumentParser
 from gensim import corpora, models
 import gensim.models.word2vec
 from bptbx import b_iotools
 
-# --- CMD LINE PARSING BEGIN --------------------------------------------------
-parser = ArgumentParser(
-    description="Generate LDA topic models.")
-parser.add_argument("-i", metavar="INPUT",
-                    help="Input directory containing raw fulltext files.")
-parser.add_argument("-o", metavar="OUTPUT",
-                    help="Output directory.")
-args = parser.parse_args()
-
-
-def show_help(message):
-    print(message)
-    parser.print_help()
-    exit(1)
-
-if not args.i:
-    show_help('No input directory set.')
-if not os.path.isdir(args.i):
-    show_help("Input directory does not exist.")
-input_dir = os.path.abspath(args.i)
-
-if not args.o:
-    show_help('No output directory set.')
-if not os.path.isdir(args.o):
-    show_help("Output directory does not exist.")
-working_dir = os.path.abspath(args.o)
-os.chdir(working_dir)
-print('-- now in working dir {}'.format(os.getcwd()))
-
-
-# --- CMD LINE PARSING END ----------------------------------------------------
-
 lda_topics = 5
 lda_passes = 2
 print('-- reading input data')
-in_files = b_iotools.findfiles(input_dir, '.*\\.txt')
+in_files = b_iotools.findfiles(args.i, '.*\\.txt')
 tokens = []
 for in_file in in_files:
     file_tokens = b_iotools.read_file_to_list(in_file, ignore_empty_lines=True)
