@@ -30,6 +30,16 @@ mkdir -p ${topics}
 cat << EOF > "${workdir}/00-rss-feeds.txt"
 http://www.spiegel.de/index.rss
 http://www.faz.net/rss/aktuell
+http://www.tagesschau.de/xml/rss2
+http://www.stern.de/feed/standard/all/
+http://rssfeed.sueddeutsche.de/c/795/f/449002/index.rss
+http://www.bild.de/rss-feeds/rss-16725492,feed=home.bild.html
+http://www.taz.de/rss.xml
+https://www.welt.de/feeds/latest.rss
+http://rss.focus.de/politik/
+http://www.n-tv.de/rss
+http://newsfeed.zeit.de/index
+http://www.handelsblatt.com/contentexport/feed/top-themen/
 EOF
 
 run_pfx="python3 -m bdatbx_scripts"
