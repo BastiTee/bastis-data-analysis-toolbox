@@ -10,6 +10,9 @@ cd "$( dirname "$( dirname "$( readlink -f $0 )" )" )"
   } || {
   workdir=$1
   temp_only=0
+  } || {
+  rm -rfv "$1"
+  mkdir -vp "$1"
 }
 [ ! -d "$workdir" ] && {
   echo "Parameter must be a working directory."; exit 1;

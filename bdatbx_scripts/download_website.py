@@ -5,13 +5,18 @@ from __future__ import with_statement
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 from bdatbx import b_cmdprs
-prs = b_cmdprs.init('Dump website content of given URLs to text files')
-b_cmdprs.add_dir_in(prs)
+prs = b_cmdprs.init(
+    'Dump website content of given feedparse run / linklist to text files')
+b_cmdprs.add_dir_in(prs, label='Input directory (feedparse files)')
+b_cmdprs.add_opt_file_in(prs, '-l', 'Flat input URL list (replaces -i option)')
 b_cmdprs.add_dir_out(prs)
 b_cmdprs.add_max_threads(prs)
 b_cmdprs.add_verbose(prs)
 args = prs.parse_args()
-b_cmdprs.check_dir_in(prs, args)
+args.i = b_cmdprs.check_opt_dir_in(prs, args.i,
+                                   info='Input feedparse directory does not exist!')
+args.l = b_cmdprs.check_opt_file_in(prs, args.l,
+                                    info='Input URL list does not exist!')
 b_cmdprs.check_dir_out_and_chdir(prs, args)
 b_cmdprs.check_max_threads(prs, args)
 # -----------------------------------------------------------------------------
@@ -51,13 +56,22 @@ def worker(url):
             res_size = b_iotools.get_file_size(raw_fname)
     b_util.update_progressbar()
 
-in_files = b_iotools.findfiles(args.i, '.*\\.txt')
-b_util.setup_progressbar(len(in_files))
+urls = []
+if args.l:
+    urls = b_iotools.read_file_to_list(args.l)
+    b_util.log('Read {} urls from link list'.format(len(urls)))
+else:
+    in_files = b_iotools.findfiles(args.i, '.*\\.txt')
+    for in_file in in_files:
+        content = ''.join(b_iotools.read_file_to_list(in_file))
+        entry = b_util.json_to_object(content)
+        url = entry['link']
+        urls.append(url)
+    b_util.log('Read {} urls from feedparse files'.format(len(urls)))
+
+b_util.setup_progressbar(len(urls))
 pool = b_threading.ThreadPool(args.t)
-for in_file in in_files:
-    content = ''.join(b_iotools.read_file_to_list(in_file))
-    entry = b_util.json_to_object(content)
-    url = entry['link']
+for url in urls:
     pool.add_task(worker, url)
 pool.wait_completion()
 b_util.finish_progressbar()

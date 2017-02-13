@@ -35,8 +35,8 @@ def check_file_in(prs, args):
 # DIRECTORY IN ----------------------------------------------------------------
 
 
-def add_dir_in(prs):
-    prs.add_argument('-i', metavar='INPUT', help='Input directory')
+def add_dir_in(prs, label='Input directory'):
+    prs.add_argument('-i', metavar='INPUT', help=label)
 
 
 def check_dir_in(prs, args):
@@ -84,14 +84,26 @@ def check_dir_out_and_chdir(prs, args):
 
 
 def add_opt_dir_in(prs, opt, label):
-    prs.add_argument(opt, metavar='DIR', help=label)
+    prs.add_argument(opt, metavar='IN_DIR', help=label)
 
 
-def check_opt_dir_in(prs, arg):
+def check_opt_dir_in(prs, arg, info='Optional directory does not exist.'):
     if arg is None:
         return
     if not path.isdir(arg):
-        show_help(prs, 'Optional directory does not exist.')
+        show_help(prs, info)
+    return path.abspath(arg)
+
+
+def add_opt_file_in(prs, opt, label):
+    prs.add_argument(opt, metavar='IN_FILE', help=label)
+
+
+def check_opt_file_in(prs, arg, info='Optional file does not exist.'):
+    if arg is None:
+        return
+    if not path.isfile(arg):
+        show_help(prs, info)
     return path.abspath(arg)
 
 
