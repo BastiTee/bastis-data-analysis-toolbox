@@ -22,7 +22,7 @@ from bdatbx import b_util
 lda_topics = 5
 lda_passes = 2
 b_util.log('reading input data')
-in_files = b_iotools.findfiles(args.i, '.*\\.txt')
+in_files = b_util.read_valid_inputfiles(args.i)
 tokens = []
 for in_file in in_files:
     file_tokens = b_iotools.read_file_to_list(in_file, ignore_empty_lines=True)

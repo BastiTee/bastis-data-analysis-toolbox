@@ -23,15 +23,17 @@ b_cmdprs.check_max_threads(prs, args)
 
 from bptbx import b_iotools, b_threading
 from os import path
+from re import search
 import time
 import requests
 from bdatbx import b_util
+from bdatbx.b_util import GLOBAL_INFILE_SUFFIX
 import feedparser
 
 
 def worker(url):
     file_key, dir_key = b_util.get_key_from_url(url)
-    raw_fname = path.join(dir_key, file_key + '.txt')
+    raw_fname = path.join(dir_key, file_key + '.' + GLOBAL_INFILE_SUFFIX)
 
     if not b_iotools.file_exists(raw_fname):
         try:
@@ -42,6 +44,17 @@ def worker(url):
             b_util.update_progressbar()
             return
         if res_code is not 200:
+            b_util.update_progressbar()
+            return
+
+        # filter out spiegel plus content for now
+        # (deobfuscation will be applied soon)
+        is_spon_source = search('www\.spiegel\.de', r.text)
+        contains_obfuscated_text = search(
+            '<p[ ]+class=\"obfuscated\"[ ]*>', r.text)
+        if is_spon_source and contains_obfuscated_text:
+            b_util.log(
+                'WARN: \'{}\' skipped because of missing deobfuscation of spiegel-plus content'.format(url))
             b_util.update_progressbar()
             return
 
@@ -61,7 +74,7 @@ if args.l:
     urls = b_iotools.read_file_to_list(args.l)
     b_util.log('Read {} urls from link list'.format(len(urls)))
 else:
-    in_files = b_iotools.findfiles(args.i, '.*\\.txt')
+    in_files = b_util.read_valid_inputfiles(args.i)
     for in_file in in_files:
         content = ''.join(b_iotools.read_file_to_list(in_file))
         entry = b_util.json_to_object(content)

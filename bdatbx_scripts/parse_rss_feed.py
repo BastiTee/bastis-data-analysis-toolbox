@@ -16,6 +16,7 @@ b_cmdprs.check_dir_out_and_chdir(prs, args)
 import feedparser
 from bptbx.b_iotools import read_file_to_list, mkdirs
 from bdatbx import b_util
+from bdatbx.b_util import GLOBAL_INFILE_SUFFIX
 from os import path
 
 input_feeds = read_file_to_list(args.i)
@@ -28,7 +29,7 @@ for input_feed in input_feeds:
         link = entry['link']
         fkey, dkey = b_util.get_key_from_url(link)
         target_dir = path.join(feed_key, dkey)
-        target_file = path.join(target_dir, fkey + '.txt')
+        target_file = path.join(target_dir, fkey + '.' + GLOBAL_INFILE_SUFFIX)
         mkdirs(target_dir)
         out_file = open(target_file, 'w')
         out_file.write(b_util.object_to_json(entry))

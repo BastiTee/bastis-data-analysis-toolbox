@@ -44,7 +44,7 @@ stdoutlog "install toolbox"
 
 stdoutlog "Installing globally..."
 sudo -H ./setup.py install
-sudo -H rm -vrf bdatbx.egg-info build dist 
+sudo -H rm -vrf bdatbx.egg-info build dist
 
 stdoutlog "Listing content in egg..."
 find $( find /usr/local/ -type d -iname "*bdatbx*" | head -n1 )
@@ -61,6 +61,3 @@ stdoutlog "configuring nltk"
 
 stdoutlog "cleaning up"
 [ -f "get-pip.py" ] && rm get-pip.py
-
-stdoutlog "Run tests..."
-bdatbx-admin-test-library

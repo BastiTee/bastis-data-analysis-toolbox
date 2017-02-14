@@ -25,6 +25,7 @@ from bdatbx import b_lists, b_util
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 
+
 def tokenize(text_lines):
     tokens = []
     for text_line in text_lines:
@@ -112,6 +113,15 @@ def write_dictionary_to_file(dictionary, stopwords, filename):
     ofile.close()
 
 
+def extend_stopwords_with_manual_list(stopwords, lang):
+    path = b_util.load_resource_file('stopwords_{}_add.txt'.format(lang))
+    new_stopwords = b_iotools.read_file_to_list(path)
+    b_util.log('Will add {} stopwords from {} to {} stopword list'.format(
+        len(new_stopwords), path, lang))
+    stopwords += new_stopwords
+    return stopwords
+
+
 def worker(worker_set):
     if not in_file or not b_iotools.file_exists(in_file):
 
@@ -146,13 +156,15 @@ if args.n:
     b_util.log('added nltk path {}'.format(args.n))
 stem_en = SnowballStemmer('english', ignore_stopwords=False)
 stem_de = SnowballStemmer('german', ignore_stopwords=False)
-sw_en = [stem_en.stem(sw) for sw in stopwords.words('english')]
-sw_de = [stem_de.stem(sw) for sw in stopwords.words('german')]
+sw_en = [stem_en.stem(sw) for sw in extend_stopwords_with_manual_list(
+    stopwords.words('english'), 'english')]
+sw_de = [stem_de.stem(sw) for sw in extend_stopwords_with_manual_list(
+    stopwords.words('german'), 'german')]
 stem_2_source_dict_en = {}
 stem_2_source_dict_de = {}
 
 # run processing
-in_files = b_iotools.findfiles(args.i, '.*\\.txt')
+in_files = b_util.read_valid_inputfiles(args.i)
 b_util.setup_progressbar(len(in_files))
 for in_file in in_files:
     worker(in_file)
@@ -160,7 +172,7 @@ b_util.finish_progressbar()
 
 # write out data points
 for lang in ['de', 'en']:
-    label = 'dictionary_{}.txt'.format(lang)
+    label = 'token_dictionary_{}.txt'.format(lang)
     if b_iotools.file_exists(label):
         os.remove(label)
     lang_dict = stem_2_source_dict_de

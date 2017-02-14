@@ -29,7 +29,7 @@ setup(
     author_email='basti.tee@gmx.de',
     url='tbd',
     packages=['bdatbx', 'bdatbx_scripts'],
-    package_data={'bdatbx': ['resource']},
+    package_data={'bdatbx': ['resource/*']},
     install_requires=[],
     entry_points={
         'console_scripts': scripts,

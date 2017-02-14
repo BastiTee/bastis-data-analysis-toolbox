@@ -16,9 +16,9 @@ b_cmdprs.check_dir_out_and_chdir(prs, args)
 b_cmdprs.check_max_threads(prs, args)
 # -----------------------------------------------------------------------------
 
-from bptbx import b_iotools, b_threading, b_web
+from bptbx import b_iotools, b_threading
 import os
-from bdatbx import b_util
+from bdatbx import b_util, b_parse
 
 def worker(in_file):
     fulltext = '\n'.join(b_iotools.read_file_to_list(in_file))
@@ -27,7 +27,7 @@ def worker(in_file):
     raw_fname = os.path.join(dirn, basename)
     if not b_iotools.file_exists(raw_fname):
         b_iotools.mkdirs(dirn)
-        main_text = b_web.extract_main_text_content(fulltext)
+        main_text = b_parse.extract_main_text_content(fulltext)
         f_handle = open(raw_fname, 'w')
         f_handle.write(main_text)
         f_handle.close()
@@ -37,7 +37,7 @@ def worker(in_file):
             res_size = b_iotools.get_file_size(raw_fname)
     b_util.update_progressbar()
 
-in_files = b_iotools.findfiles(args.i, '.*\\.txt')
+in_files = b_util.read_valid_inputfiles(args.i)
 b_util.setup_progressbar(len(in_files))
 pool = b_threading.ThreadPool(args.t)
 for in_file in in_files:

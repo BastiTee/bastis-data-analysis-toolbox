@@ -5,9 +5,19 @@ from tempfile import mkdtemp
 from shutil import rmtree
 import unittest
 from os import path
+from bptbx import b_iotools
 
 
 class MainTestSuite(unittest.TestCase):
+
+    def get_res_path(self, basename):
+        if basename is None:
+            self.fail('Test resource cannot be empty')
+        script_path = path.dirname(path.abspath(__file__))
+        res_path = path.join(script_path, 'resource', basename)
+        if not b_iotools.file_exists(res_path):
+            self.fail('Test resource {} not found.'.format(res_path))
+        return res_path
 
     def test_lists(self):
         from bdatbx import b_lists
@@ -60,6 +70,22 @@ class MainTestSuite(unittest.TestCase):
         self.assertEqual(-1232.23,
                          b_parse.parse_basic_money_format_to_float('-1.232,23'))
         # ------------
+        dat_in = '\n'.join(
+            b_iotools.read_file_to_list(self.get_res_path('html-in.txt')))
+        dat_out = '\n'.join(
+            b_iotools.read_file_to_list(self.get_res_path('raw-text-out.txt')))
+        raw_text = b_parse.extract_main_text_content(dat_in)
+        self.assertEqual(dat_out, raw_text)
+        # ------------
+        # without obfuscated text, don't do anything
+        # dat_in = '\n'.join(
+        #     b_iotools.read_file_to_list(self.get_res_path('html-in.txt')))
+        # dat_out = b_parse.deobfuscate_spiegel_plus_content(dat_in)
+        # self.assertEqual(dat_in, dat_out)
+        # with obfuscated text, translate text
+        # dat_in = '\n'.join(
+        #     b_iotools.read_file_to_list(self.get_res_path('spiegel-plus.txt')))
+        # dat_out = b_parse.deobfuscate_spiegel_plus_content(dat_in)
 
     def test_stats(self):
         from bdatbx import b_stats

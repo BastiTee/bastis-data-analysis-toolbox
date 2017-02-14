@@ -2,6 +2,8 @@
 
 # change to root of bdatbx
 cd "$( dirname "$( dirname "$( readlink -f $0 )" )" )"
+# extend python path with a local bptbx version
+export PYTHONPATH=${PYTHONPATH}:../bastis-python-toolbox
 
 [ -z "$1" ] && {
   # create a temporary work directory
@@ -10,12 +12,8 @@ cd "$( dirname "$( dirname "$( readlink -f $0 )" )" )"
   } || {
   workdir=$1
   temp_only=0
-  } || {
-  rm -rfv "$1"
-  mkdir -vp "$1"
-}
-[ ! -d "$workdir" ] && {
-  echo "Parameter must be a working directory."; exit 1;
+  rm -rf "$1"
+  mkdir -p "$1"
 }
 
 # setup files and folders
@@ -25,12 +23,7 @@ rawtext="${workdir}/02-raw-text"
 tokens="${workdir}/03-tokens"
 tstats="${workdir}/04-text-stats"
 topics="${workdir}/05-topic-models"
-mkdir -p ${feeds}
-mkdir -p ${html}
-mkdir -p ${rawtext}
-mkdir -p ${tokens}
-mkdir -p ${tstats}
-mkdir -p ${topics}
+mkdir -p ${feeds} ${html} ${rawtext} ${tokens} ${tstats} ${topics}
 cat << EOF > "${workdir}/00-rss-feeds.txt"
 http://www.spiegel.de/index.rss
 EOF
@@ -46,13 +39,12 @@ EOF
 # http://newsfeed.zeit.de/index
 # http://www.handelsblatt.com/contentexport/feed/top-themen/
 
+python3 -m bdatbx_test.admin_test_library
 run_pfx="python3 -m bdatbx_scripts"
-${run_pfx}.admin_test_library
 ${run_pfx}.parse_rss_feed -i "${workdir}/00-rss-feeds.txt" -o ${feeds}
 ${run_pfx}.download_website -i ${feeds} -o ${html}
 ${run_pfx}.extract_raw_text_from_website -i ${html} -o ${rawtext}
-${run_pfx}.tokenize_raw_text -i ${rawtext} -o ${tokens} \
--n nltk-data
+${run_pfx}.tokenize_raw_text -i ${rawtext} -o ${tokens} -n nltk-data
 ${run_pfx}.gather_statistics -i ${tokens} -o ${tstats}
 ${run_pfx}.generate_topic_models -i ${tokens} -o ${topics}
 

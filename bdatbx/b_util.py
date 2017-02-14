@@ -1,5 +1,24 @@
 r"""Processing utilities."""
 
+GLOBAL_INFILE_SUFFIX = 'bdatbx'
+
+
+def load_resource_file(basename):
+    from bptbx import b_iotools
+    from os import path
+    script_path = path.dirname(path.abspath(__file__))
+    res_path = path.join(script_path, 'resource', basename)
+    if not b_iotools.file_exists(res_path):
+        log('Resource file \'{}\' not found.'.format(res_path), 1)
+    return res_path
+
+
+def read_valid_inputfiles(input_dir):
+    from bptbx import b_iotools
+    file_list = b_iotools.findfiles(
+        input_dir, '.*\.{}'.format(GLOBAL_INFILE_SUFFIX))
+    return file_list
+
 
 def get_key_from_url(url):
     """Generates a filesafe permakey from a given input url."""
@@ -9,7 +28,8 @@ def get_key_from_url(url):
     file_key = sub('[^a-zA-Z0-9_-]', '_', url)
     file_key = sub('^http[s]?_', '', file_key)
     file_key = sub('^_+', '', file_key)
-    file_key = sub('_+$', '', file_key)[:75]
+    file_key = sub('_+$', '', file_key)
+    file_key = sub('^w+_+', '', file_key)[:80]
     chksum = md5(url.encode('utf-8')).hexdigest()
     file_key = file_key + '_' + chksum
     dir_key = file_key[:16]
@@ -82,10 +102,3 @@ def json_to_object(json_string):
     import json
     obj = json.loads(json_string)
     return obj
-
-
-if __name__ == '__main__':
-    obj = {'foo': 123}
-    json_string = object_to_json(obj)
-    obj_back = json_to_object(json_string)
-    assert obj == obj_back
