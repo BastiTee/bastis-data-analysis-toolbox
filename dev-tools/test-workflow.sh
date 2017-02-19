@@ -15,7 +15,7 @@ cd "$( dirname "$( dirname "$( readlink -f $0 )" )" )"
   mkdir -vp "$1"
 }
 [ ! -d "$workdir" ] && {
-  echo "Parameter must be a working directory."; exit 1;
+    echo "Parameter must be an existing working directory."; exit 1;
 }
 
 # setup files and folders
