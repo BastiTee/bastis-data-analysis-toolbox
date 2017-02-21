@@ -15,6 +15,9 @@ export PYTHONPATH=${PYTHONPATH}:../bastis-python-toolbox
   rm -rf "$1"
   mkdir -p "$1"
 }
+[ ! -d "$workdir" ] && {
+    echo "Parameter must be an existing working directory."; exit 1;
+}
 
 # setup files and folders
 feeds="${workdir}/00-feeds"
