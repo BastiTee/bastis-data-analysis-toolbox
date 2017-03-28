@@ -76,7 +76,7 @@ def check_dir_out_and_chdir(prs, args):
         show_help(prs, 'Output directory does not exist.')
     args.o = path.abspath(args.o)
     chdir(args.o)
-    b_util.log('STARTED {}'.format(b_util.get_calling_module(1)), 1, '0;32;40')
+    b_util.log('STARTED {}'.format(b_util.get_calling_module(1)), 1, '0;32')
     b_util.log('Working directory {}'.format(getcwd()), 1)
 
 

@@ -36,7 +36,7 @@ def get_key_from_url(url):
     return file_key, dir_key
 
 
-def log(message, stack_back=0, color='0;33;40'):
+def log(message, stack_back=0, color='0;33'):
     if not message or message is None:
         return
     # find out what module called the logging
