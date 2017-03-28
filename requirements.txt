@@ -7,5 +7,6 @@ scipy >= 0.18.1 # scipy # scipy
 numpy >= 1.6 # numpy # numpy
 autopep8 >= 1.2
 beautysh >= 3.1
+langdetect >= 1.0.7
 feedparser >= 5.1 # feedparser # feedparser
 git+git://github.com/BastiTee/bastis-python-toolbox.git@HEAD # # # bptbx # bptbx
