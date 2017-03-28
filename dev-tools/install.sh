@@ -4,18 +4,8 @@ cd "$( dirname "$( dirname "$( readlink -f $0 )" )" )"
 source "dev-tools/base.sh"
 
 stdoutlog "configuring python version"
-PY="python3"
-[ -z $( command -v "$PY" ) ] && {
-  [ -z $( command -v python ) ] && {
-    echo "You need to install python3 first."
-    exit 1
-  }
-  py_ver=$( python --version 2>&1 | tr "." " " | cut -d" " -f2 )
-  [ ! -z "$py_ver" ] && [ $py_ver == 2 ] && {
-    echo "Warning: You're using python3, but script's python3-optimized."
-  }
-  PY="python"
-}
+PY=$( get_python_com )
+[ -z $PY ] && exit 1
 stdoutlog "using python version: $( $PY --version 2>&1 | cut -d" " -f2 )"
 
 stdoutlog "configuring pip version"
@@ -42,13 +32,6 @@ done
 
 stdoutlog "install toolbox"
 
-stdoutlog "Installing globally..."
-sudo -H ./setup.py install
-sudo -H rm -vrf bdatbx.egg-info build dist
-
-stdoutlog "Listing content in egg..."
-find $( find /usr/local/ -type d -iname "*bdatbx*" | head -n1 )
-
 stdoutlog "configuring nltk"
 [ "$1" == "-manual" ] && {
   $PY -c "import nltk; nltk.download()"
@@ -61,3 +44,15 @@ stdoutlog "configuring nltk"
 
 stdoutlog "cleaning up"
 [ -f "get-pip.py" ] && rm get-pip.py
+
+global=$( yesno "Install bdatpx globally?" )
+[ "$global" == "1" ] && {
+  stdoutlog "Installing globally..."
+  sudo -H ./setup.py install
+  sudo -H rm -vrf bdatbx.egg-info build dist
+
+  stdoutlog "Listing content in egg..."
+  find $( find /usr/local/ -type d -iname "*bdatbx*" | head -n1 )
+}
+
+echo

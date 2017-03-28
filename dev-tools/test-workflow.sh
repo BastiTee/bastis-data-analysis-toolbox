@@ -2,8 +2,9 @@
 
 # change to root of bdatbx
 cd "$( dirname "$( dirname "$( readlink -f $0 )" )" )"
-# extend python path with a local bptbx version
-export PYTHONPATH=${PYTHONPATH}:../bastis-python-toolbox
+source "dev-tools/base.sh"
+PY=$( get_python_com )
+[ -z $PY ] && exit 1
 
 [ -z "$1" ] && {
   # create a temporary work directory
@@ -42,8 +43,8 @@ EOF
 # http://newsfeed.zeit.de/index
 # http://www.handelsblatt.com/contentexport/feed/top-themen/
 
-python3 -m bdatbx_test.admin_test_library
-run_pfx="python3 -m bdatbx_scripts"
+$PY -m bdatbx_test.admin_test_library
+run_pfx="$PY -m bdatbx_scripts"
 ${run_pfx}.parse_rss_feed -i "${workdir}/00-rss-feeds.txt" -o ${feeds}
 ${run_pfx}.download_website -i ${feeds} -o ${html}
 ${run_pfx}.extract_raw_text_from_website -i ${html} -o ${rawtext}
