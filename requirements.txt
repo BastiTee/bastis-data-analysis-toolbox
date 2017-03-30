@@ -10,7 +10,6 @@ feedparser >= 5.1 # feedparser # feedparser
 beautifulsoup4 >= 4.5.3 # bs4 # beautifulsoup4
 
 # tools
-git+git://github.com/BastiTee/bastis-python-toolbox.git@HEAD # # # bptbx # bptbx
 requests >= 2.12 # requests # requests
 progressbar2 >= 3.1 # progressbar # progressbar2
 
