@@ -1,6 +1,27 @@
 r"""Processing utilities."""
 
-GLOBAL_INFILE_SUFFIX = 'bdatbx'
+
+def print_result_statistics(results, label, print_counter=True,
+                            counter_max=None,
+                            print_resultset_stats=False, print_counter_stats=False):
+    log('{}\n\ttotal = {}\n\tunique = {}\n\tnone_values = {}'.format(
+        label,
+        results['resultset_len'],
+        results['resultset_unique'],
+        results['resultset_none_vals'],
+    ))
+    if print_counter:
+        log('\tcounter=')
+        for tuple in results['counter'].most_common(counter_max):
+            log('\t\t{}\t= {}'.format(tuple[1], tuple[0]))
+    if print_resultset_stats:
+        log('\tstats_for_resultset=')
+        for key, value in results['resultset_stats'].items():
+            log('\t\t{}\t= {}'.format(key, value))
+    if print_counter_stats:
+        log('\tstats_for_counter=')
+        for key, value in results['counter_stats'].items():
+            log('\t\t{}\t= {}'.format(key, value))
 
 
 def load_resource_file(basename):
@@ -14,6 +35,7 @@ def load_resource_file(basename):
 
 
 def read_valid_inputfiles(input_dir):
+    from bdatbx.b_const import GLOBAL_INFILE_SUFFIX
     from bptbx import b_iotools
     file_list = b_iotools.findfiles(
         input_dir, '.*\.{}'.format(GLOBAL_INFILE_SUFFIX))
@@ -34,6 +56,10 @@ def get_key_from_url(url):
     file_key = file_key + '_' + chksum
     dir_key = file_key[:16]
     return file_key, dir_key
+
+
+def logerr(message, stack_back=0, color='0;31', prefix=False):
+    log(message, stack_back, color, prefix)
 
 
 def log(message, stack_back=0, color='0;33', prefix=False):

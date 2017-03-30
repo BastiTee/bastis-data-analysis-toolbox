@@ -43,7 +43,7 @@ EOF
 # http://newsfeed.zeit.de/index
 # http://www.handelsblatt.com/contentexport/feed/top-themen/
 
-$PY -m bdatbx_test.admin_test_library
+$PY -m bdatbx_test.test_suite
 run_pfx="$PY -m bdatbx_scripts"
 ${run_pfx}.parse_rss_feed -i "${workdir}/00-rss-feeds.txt" -o ${feeds}
 ${run_pfx}.download_website -i ${feeds} -o ${html}

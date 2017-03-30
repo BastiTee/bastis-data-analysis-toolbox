@@ -77,7 +77,7 @@ def check_dir_out_and_chdir(prs, args):
     args.o = path.abspath(args.o)
     chdir(args.o)
     b_util.log('STARTED {}'.format(b_util.get_calling_module(1)), 1, '0;32',
-        prefix=True)
+               prefix=True)
     b_util.log('Working directory {}'.format(getcwd()), 1, prefix=True)
 
 
@@ -111,6 +111,20 @@ def check_opt_file_in(prs, arg, info='Optional file does not exist.'):
 def add_verbose(prs):
     prs.add_argument('-v', action='store_true',
                      help='Verbose output', default=False)
+
+
+def add_mongo_collection(prs):
+    prs.add_argument('-c', default='', help='MongoDB collection name')
+
+
+def check_mongo_collection(prs, args, required=False):
+    if not args.c and required:
+        show_help(prs, 'MongoDB collection required but not set.' )
+    from bdatbx import b_mongo
+    col = b_mongo.get_client_for_collection(args.c, create=False)
+    if not col:
+        show_help(prs, 'Given MongoDB collection does not exist.' )
+    return col
 
 
 def add_bool(prs, opt, label):

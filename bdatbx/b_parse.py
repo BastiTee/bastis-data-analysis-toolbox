@@ -30,6 +30,15 @@ def contains(pattern, string):
         return True
     return False
 
+def get_domain_from_uri(uri):
+    if not uri:
+        return None
+    from urllib import parse
+    from re import sub
+    netloc = parse.urlparse(uri).netloc
+    netloc = sub(':[^:]+$', '', netloc) # get rid of port numbers
+    return netloc
+
 
 def extract_main_text_content(html):
     """A method to extract the main content of a given HTML page. This code

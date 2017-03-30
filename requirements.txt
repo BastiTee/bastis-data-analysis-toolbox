@@ -5,7 +5,7 @@ scipy >= 0.18.1 # scipy # scipy
 numpy >= 1.6 # numpy # numpy
 langdetect >= 1.0.7 # langdetect # langdetect
 
-# parsing 
+# parsing
 feedparser >= 5.1 # feedparser # feedparser
 beautifulsoup4 >= 4.5.3 # bs4 # beautifulsoup4
 
@@ -13,6 +13,9 @@ beautifulsoup4 >= 4.5.3 # bs4 # beautifulsoup4
 requests >= 2.12 # requests # requests
 progressbar2 >= 3.1 # progressbar # progressbar2
 
-# development 
+# persistence
+pymongo >= 3.4.0 # pymongo # pymongo
+
+# development
 autopep8 >= 1.2
 beautysh >= 3.1

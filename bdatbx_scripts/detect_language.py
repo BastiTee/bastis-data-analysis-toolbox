@@ -6,7 +6,7 @@ from bptbx.b_iotools import read_file_to_list
 from bptbx import b_threading
 from bdatbx import b_util
 from os import path
-from bdatbx.b_util import GLOBAL_INFILE_SUFFIX
+from bdatbx.b_const import GLOBAL_INFILE_SUFFIX
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 from bdatbx import b_cmdprs

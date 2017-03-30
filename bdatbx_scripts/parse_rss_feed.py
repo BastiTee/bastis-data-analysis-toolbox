@@ -16,7 +16,7 @@ b_cmdprs.check_dir_out_and_chdir(prs, args)
 import feedparser
 from bptbx.b_iotools import read_file_to_list, mkdirs
 from bdatbx import b_util
-from bdatbx.b_util import GLOBAL_INFILE_SUFFIX
+from bdatbx.b_const import GLOBAL_INFILE_SUFFIX
 from os import path
 
 input_feeds = read_file_to_list(args.i)
