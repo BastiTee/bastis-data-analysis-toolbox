@@ -31,6 +31,10 @@ def consolidate_mongo_key(col, key, if_filter=lambda x: True):
     }
     return results
 
+def set_null_safe(doc, key, value):
+    if doc is None or key is None:
+        return
+    doc[key] = value
 
 def get_key_nullsafe(doc, key):
     if not doc or not key:
@@ -52,10 +56,11 @@ def update_value_nullsafe(col, doc, key, value=None):
     col.update_one({'_id': doc['_id']}, {'$set': {key: value}})
 
 
-def get_snapshot_cursor(col):
+def get_snapshot_cursor(col, no_cursor_timeout=False):
     if col is None:
         return  # Bypass database on missing connectivity
-    return col.find({}, modifiers={"$snapshot": True})
+    return col.find({}, modifiers={"$snapshot": True},
+        no_cursor_timeout=no_cursor_timeout)
 
 
 def get_doc_or_none(col, key, value):

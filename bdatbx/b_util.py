@@ -59,10 +59,10 @@ def get_key_from_url(url):
 
 
 def logerr(message, stack_back=0, color='0;31', prefix=False):
-    log(message, stack_back, color, prefix)
+    log(message, stack_back, color, prefix, err=True)
 
 
-def log(message, stack_back=0, color='0;33', prefix=False):
+def log(message, stack_back=0, color='0;33', prefix=False, err=False):
     if not message or message is None:
         return
     # find out what module called the logging
@@ -75,7 +75,11 @@ def log(message, stack_back=0, color='0;33', prefix=False):
             ccase += i[0]
         ccase = '[{}] '.format(ccase)
     # print with given prefix and colors
-    print('\x1b[{}m{}{}\x1b[0m'.format(color, ccase, message))
+    if err:
+        import sys
+        print('\x1b[{}m{}{}\x1b[0m'.format(color, ccase, message), file=sys.stderr)
+    else:
+        print('\x1b[{}m{}{}\x1b[0m'.format(color, ccase, message))
 
 
 def get_calling_module(stack_back=0):

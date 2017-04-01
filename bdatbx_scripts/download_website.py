@@ -43,51 +43,35 @@ def worker(url, col=None, doc=None):
     file_key, dir_key = b_util.get_key_from_url(url)
     raw_fname = path.join(
         dir_key, file_key + '.' + b_const.GLOBAL_INFILE_SUFFIX)
-
-    if b_iotools.file_exists(raw_fname):
-        b_util.update_progressbar()
-        return
-
-    b_mongo.update_value_nullsafe(col, doc, b_const.DB_DL_DOMAIN,
-                                  b_parse.get_domain_from_uri(url))
     try:
-        b_mongo.update_value_nullsafe(
-            col, doc, b_const.DB_DL_RESCODE)
-        r = requests.get(url, timeout=10)
-        res_code = r.status_code
-        b_mongo.update_value_nullsafe(
-            col, doc, b_const.DB_DL_RESCODE, res_code)
+        if b_iotools.file_exists(raw_fname):
+            return
+        b_mongo.set_null_safe(doc, b_const.DB_DL_DOMAIN, b_parse.get_domain_from_uri(url))
+
+        s = requests.Session()
+        r = s.get(url)
+        statusc = r.status_code
+        b_mongo.set_null_safe(doc, b_const.DB_DL_RESCODE, statusc)
+        if statusc is not 200:
+            return
+        b_mongo.set_null_safe(doc, b_const.DB_DL_ERROR, None)
+
+        b_iotools.mkdirs(dir_key)
+        f_handle = open(raw_fname, 'w')
+        f_handle.write(r.text)
+        f_handle.close()
+
+        if b_iotools.file_exists(raw_fname):
+            b_mongo.set_null_safe(doc, b_const.DB_DL_RAWFILE, raw_fname)
+            b_mongo.set_null_safe(doc, b_const.DB_DL_RAWFILESIZE,
+            b_iotools.get_file_size(raw_fname))
+
     except Exception as e:
         b_util.log('ERROR for \'{}\': {}'.format(url, e))
+        b_mongo.set_null_safe(doc, b_const.DB_DL_ERROR, str(e))
+    finally:
+        b_mongo.replace_doc(col, doc)
         b_util.update_progressbar()
-        return
-    if res_code is not 200:
-        b_util.update_progressbar()
-        return
-
-    # filter out spiegel plus content for now
-    # (deobfuscation will be applied soon)
-    if (
-        search('www\.spiegel\.de', r.text) and
-        search('<p[ ]+class=\"obfuscated\"[ ]*>', r.text)
-    ):
-        b_util.log(
-            'WARN: \'{}\' skipped because of missing deobfuscation of spiegel-plus content'.format(url))
-        b_util.update_progressbar()
-        return
-
-    b_iotools.mkdirs(dir_key)
-
-    f_handle = open(raw_fname, 'w')
-    f_handle.write(r.text)
-    f_handle.close()
-
-    if b_iotools.file_exists(raw_fname):
-        b_mongo.update_value_nullsafe(
-            col, doc, b_const.DB_DL_RAWFILE, raw_fname)
-        b_mongo.update_value_nullsafe(
-            col, doc, b_const.DB_DL_RAWFILESIZE,                                      b_iotools.get_file_size(raw_fname))
-    b_util.update_progressbar()
 
 urls = []
 via_mongo = False
@@ -100,7 +84,7 @@ if args.i:
         urls.append(url)
     b_util.log('Read {} urls from feedparse files'.format(len(urls)))
 elif args.l:
-    urls = b_iotools.read_file_to_list(args.l)
+    urls = b_iotools.read_file_to_list(args.l, ignore_empty_lines=True)
     b_util.log('Read {} urls from link list'.format(len(urls)))
 elif args.c:
     via_mongo = True
@@ -114,11 +98,27 @@ if not via_mongo:
         pool.add_task(worker, url)
 else:
     b_util.setup_progressbar(b_mongo.get_collection_size(col))
-    for doc in b_mongo.get_snapshot_cursor(col):
+    cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
+    i = 0
+    for doc in cursor:
         pool.add_task(worker, doc[b_const.DB_SOURCE_URI], col, doc)
+        i += 1
+    cursor.close()
+    b_util.log('Cursor closed. Added {} jobs to job queue.'.format(i))
 pool.wait_completion()
 b_util.finish_progressbar()
 
 
 def main():
     pass
+
+# filter out spiegel plus content for now
+# (deobfuscation will be applied soon)
+# if (
+#     search('www\.spiegel\.de', r.text) and
+#     search('<p[ ]+class=\"obfuscated\"[ ]*>', r.text)
+# ):
+    # b_util.log(
+    #     'WARN: \'{}\' skipped because of missing deobfuscation of spiegel-plus content'.format(url))
+    # b_util.update_progressbar()
+    # return
