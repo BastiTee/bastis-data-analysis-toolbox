@@ -36,6 +36,7 @@ from os import path
 from re import search
 import time
 import requests
+from requests import exceptions
 import feedparser
 
 
@@ -48,8 +49,17 @@ def worker(url, col=None, doc=None):
             return
         b_mongo.set_null_safe(doc, b_const.DB_DL_DOMAIN, b_parse.get_domain_from_uri(url))
 
-        s = requests.Session()
-        r = s.get(url)
+        try:
+            r = requests.get(url, timeout=10)
+        except exceptions.TooManyRedirects as t:
+            # see https://github.com/kennethreitz/requests/issues/3949
+            r = requests.get(url, allow_redirects=False)
+            try:
+                latin1_location = r.headers['Location'].encode('latin1')
+                r = requests.get(latin1_location, timeout=10)
+            except KeyError:
+                raise t
+
         statusc = r.status_code
         b_mongo.set_null_safe(doc, b_const.DB_DL_RESCODE, statusc)
         if statusc is not 200:

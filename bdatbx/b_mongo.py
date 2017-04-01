@@ -4,13 +4,14 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, DuplicateKeyError
 
 
-def consolidate_mongo_key(col, key, if_filter=lambda x: True):
+def consolidate_mongo_key(col, key, if_filter=lambda x: True,
+    process_value=lambda x: x):
     from re import sub
     from collections import Counter
     from bdatbx import b_stats
     cur = col.find({}, {key: 1, '_id': 0})
     resultset = [
-        get_key_nullsafe(doc, key) for doc in cur if if_filter(get_key_nullsafe(doc, key))]
+        process_value(get_key_nullsafe(doc, key)) for doc in cur if if_filter(get_key_nullsafe(doc, key))]
     if len(resultset) > 0:
         # stringify lists
         if isinstance(resultset[0], list):
