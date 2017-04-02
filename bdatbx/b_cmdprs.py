@@ -119,7 +119,9 @@ def add_mongo_collection(prs):
 
 def check_mongo_collection(prs, args, required=False):
     if not args.c and required:
-        show_help(prs, 'MongoDB collection required but not set.' )
+        show_help(prs, 'MongoDB collection required but not set.')
+    elif not args.c:
+        return
     from bdatbx import b_mongo
     col = b_mongo.get_client_for_collection(args.c, create=False)
     if not col:

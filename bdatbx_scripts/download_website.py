@@ -20,12 +20,7 @@ args.i = b_cmdprs.check_opt_dir_in(prs, args.i,
                                    info='Input feedparse directory does not exist!')
 args.l = b_cmdprs.check_opt_file_in(prs, args.l,
                                     info='Input URL list does not exist!')
-if args.c:
-    from bdatbx import b_mongo
-    col = b_mongo.get_client_for_collection(args.c, create=False)
-    if not col:
-        b_cmdprs.show_help(
-            prs, 'You provided a mongo collection that doesn\'t exist.')
+b_cmdprs.check_mongo_collection(prs)
 b_cmdprs.check_dir_out_and_chdir(prs, args)
 b_cmdprs.check_max_threads(prs, args)
 # -----------------------------------------------------------------------------
