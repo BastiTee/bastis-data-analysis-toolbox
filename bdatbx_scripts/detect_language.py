@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
-from bdatbx import b_cmdprs, b_const
+from bdatbx import b_cmdprs, b_const, b_util
 prs = b_cmdprs.init(
     'Detect (or best-guess) the language of the given file\'s content')
 b_cmdprs.add_dir_in(prs)
@@ -17,7 +17,7 @@ col = b_cmdprs.check_mongo_collection(prs, args)
 import langdetect
 from bptbx.b_iotools import read_file_to_list
 from bptbx import b_threading
-from bdatbx import b_util
+from bdatbx import b_util, b_mongo
 from os import path
 from re import findall
 from bdatbx.b_const import GLOBAL_INFILE_SUFFIX

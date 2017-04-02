@@ -30,8 +30,6 @@ topics="${workdir}/05-topic-models"
 mkdir -p ${feeds} ${html} ${rawtext} ${tokens} ${tstats} ${topics}
 cat << EOF > "${workdir}/00-rss-feeds.txt"
 http://www.spiegel.de/index.rss
-http://www.tagesschau.de/xml/rss2
-http://www.faz.net/rss/aktuell
 EOF
 
 $PY -m bdatbx_test.test_suite
@@ -39,6 +37,7 @@ run_pfx="$PY -m bdatbx_scripts"
 ${run_pfx}.parse_rss_feed -i "${workdir}/00-rss-feeds.txt" -o ${feeds}
 ${run_pfx}.download_website -i ${feeds} -o ${html}
 ${run_pfx}.extract_raw_text_from_website -i ${html} -o ${rawtext}
+${run_pfx}.detect_language -i ${rawtext} -o ${rawtext}/lang.txt
 ${run_pfx}.tokenize_raw_text -i ${rawtext} -o ${tokens} -n nltk-data
 ${run_pfx}.generate_topic_models -i ${tokens} -o ${topics}
 
