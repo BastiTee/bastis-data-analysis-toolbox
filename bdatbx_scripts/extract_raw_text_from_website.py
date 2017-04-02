@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 from __future__ import with_statement
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
@@ -15,16 +14,11 @@ args = prs.parse_args()
 b_cmdprs.check_dir_in(prs, args)
 b_cmdprs.check_dir_out_and_chdir(prs, args)
 b_cmdprs.check_max_threads(prs, args)
-if args.c:
-    from bdatbx import b_mongo
-    col = b_mongo.get_client_for_collection(args.c, create=False)
-    if not col:
-        b_cmdprs.show_help(
-            prs, 'You provided a mongo collection that doesn\'t exist.')
+col = b_cmdprs.check_mongo_collection(prs, args)
 # -----------------------------------------------------------------------------
 
 from bptbx import b_iotools, b_threading
-from bdatbx import b_util, b_parse, b_const
+from bdatbx import b_util, b_parse, b_const, b_mongo
 from collections import Counter
 from re import findall
 import os
@@ -60,27 +54,23 @@ def worker(in_file, col=None, doc=None):
         b_util.update_progressbar()
 
 pool = b_threading.ThreadPool(args.t)
-if args.i and not args.c:
+if args.i and not col:
     in_files = b_util.read_valid_inputfiles(args.i)
     b_util.setup_progressbar(len(in_files))
     for in_file in in_files:
         pool.add_task(worker, in_file)
-elif args.c:
+else:
     b_util.setup_progressbar(b_mongo.get_collection_size(col))
     cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
-    i = 0
     for doc in cursor:
         html_file = b_mongo.get_key_nullsafe(doc, b_const.DB_DL_RAWFILE)
         if html_file:
             in_file = os.path.join(args.i, html_file)
             pool.add_task(worker, in_file, col, doc)
-        i += 1
     cursor.close()
-    b_util.log('Cursor closed. Added {} jobs to job queue.'.format(i))
 
 pool.wait_completion()
 b_util.finish_progressbar()
-
 
 def main():
     pass

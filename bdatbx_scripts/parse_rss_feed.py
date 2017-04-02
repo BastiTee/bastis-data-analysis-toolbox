@@ -37,9 +37,7 @@ for input_feed in input_feeds:
 
     b_util.update_progressbar()
 
-
 b_util.finish_progressbar()
-
 
 def main():
     pass

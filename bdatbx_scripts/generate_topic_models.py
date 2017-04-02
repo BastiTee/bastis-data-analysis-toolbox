@@ -42,6 +42,5 @@ ldamodel = gensim.models.ldamulticore.LdaMulticore(
 for topic in ldamodel.print_topics(num_topics=lda_topics, num_words=6):
     b_util.log(topic)
 
-
 def main():
     pass

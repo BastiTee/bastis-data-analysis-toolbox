@@ -1,20 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# change to script dir and extend pythonpath
-from sys import path as spath, argv, exit
-from os import chdir, path, environ
-chdir(path.dirname(__file__))
-if environ['BDATBX']:
-    spath.insert(0, environ['BDATBX'])
-else:
-    spath.insert(0, '_bdatbx_install')
-if environ['BPTBX']:
-    spath.insert(0, environ['BPTBX'])
-else:
-    spath.insert(0, '_bdatbx_install')
-print('-- PYTHONPATH: {}'.format(spath))
-
+from sys import argv
 try:
     collection_name=argv[1]
 except IndexError:
@@ -36,14 +23,17 @@ i = 0
 for doc in cursor:
     if ( i % modu ) == 0:
         print ('{}/{} ({}%)...'.format(i, size, (int((i/size)*100))))
-        pass
+    i += 1
     value = b_mongo.get_key_nullsafe(doc, b_const.DB_DL_RAWFILE)
     if not value:
         continue
+
     # --- WORK STARTS HERE
-    # print (value)
+
+    # ...
+
     # --- WORK ENDS HERE
-    i += 1
+    
 cursor.close()
 
 def main():

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 from __future__ import with_statement
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
@@ -26,7 +25,6 @@ from bptbx import b_iotools, b_threading
 from bdatbx import b_lists, b_util, b_mongo, b_const
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
-from sys import exit
 
 def tokenize(text_lines):
     tokens = []
@@ -158,7 +156,6 @@ def worker(in_file, col=None, doc=None):
         b_mongo.replace_doc(col, doc)
         b_util.update_progressbar()
 
-
 # setup language tools
 if args.n:
     nltk.data.path.append(args.n)
@@ -192,15 +189,12 @@ if args.i and not col:
 elif col:
     b_util.setup_progressbar(b_mongo.get_collection_size(col))
     cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
-    i = 0
     for doc in cursor:
         raw_text = b_mongo.get_key_nullsafe(doc, b_const.DB_TE_RAWFILE)
         if raw_text:
             in_file = os.path.join(args.i, raw_text)
             pool.add_task(worker, in_file, col, doc)
-        i += 1
     cursor.close()
-    b_util.log('Cursor closed. Added {} jobs to job queue.'.format(i))
 pool.wait_completion()
 b_util.finish_progressbar()
 

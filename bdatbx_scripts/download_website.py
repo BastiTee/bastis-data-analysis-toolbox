@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 from __future__ import with_statement
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
@@ -20,7 +19,7 @@ args.i = b_cmdprs.check_opt_dir_in(prs, args.i,
                                    info='Input feedparse directory does not exist!')
 args.l = b_cmdprs.check_opt_file_in(prs, args.l,
                                     info='Input URL list does not exist!')
-b_cmdprs.check_mongo_collection(prs)
+col = b_cmdprs.check_mongo_collection(prs, args)
 b_cmdprs.check_dir_out_and_chdir(prs, args)
 b_cmdprs.check_max_threads(prs, args)
 # -----------------------------------------------------------------------------
@@ -104,15 +103,11 @@ if not via_mongo:
 else:
     b_util.setup_progressbar(b_mongo.get_collection_size(col))
     cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
-    i = 0
     for doc in cursor:
         pool.add_task(worker, doc[b_const.DB_SOURCE_URI], col, doc)
-        i += 1
     cursor.close()
-    b_util.log('Cursor closed. Added {} jobs to job queue.'.format(i))
 pool.wait_completion()
 b_util.finish_progressbar()
-
 
 def main():
     pass
