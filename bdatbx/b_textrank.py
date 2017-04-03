@@ -5,6 +5,18 @@
 #trump-sample-article.bdatbx
 # http://bdewilde.github.io/blog/2014/09/23/intro-to-automatic-keyphrase-extraction/
 #
+# https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+# NN | Noun, singular or mass |
+# NNS | Noun, plural |
+# NNP | Proper noun, singular |
+# NNPS | Proper noun, plural |
+# JJ | Adjective |
+# JJR | Adjective, comparative |
+# JJS | Adjective, superlative |
+
+
+def get_stemmer_for_language(language):
+    return nltk.stem.snowball.SnowballStemmer(language, ignore_stopwords=False)
 
 def get_stopwords_for_language(language):
     from bdatbx import b_util
@@ -19,105 +31,89 @@ def get_stopwords_for_language(language):
     return stop_words
 
 
-def score_terms_by_textrank(text, n_keywords=0.05):
-    from itertools import takewhile, tee
-    import nltk
-    import itertools, networkx, nltk, string
-    from re import match
-    from nltk.stem.snowball import SnowballStemmer
+def score_terms_by_textrank(text, language='german'):
+    import nltk, itertools, networkx, nltk, string, re
 
-    stop_words = get_stopwords_for_language('german')
-    stemmer = SnowballStemmer('german', ignore_stopwords=False)
+    stop_words = get_stopwords_for_language(language)
+    stemmer = get_stemmer_for_language(language)
     stop_words = set([stemmer.stem(stop_word) for stop_word in stop_words])
+    allowed_pos_tags=set(['FW', 'JJ','JJR','JJS','NN','NNP','NNS','NNPS'])
+    token_2_word_dict = {}
+    all_tokens = []
+    all_token_sentences = []
 
-    good_tags=set(['JJ','JJR','JJS','NN','NNP','NNS','NNPS'])
-    base2org = {}
-
-    print('tokenize')
-    words = []
-    inwords = []
     for sentence in nltk.sent_tokenize(text):
-        pps = []
-        for word in nltk.tokenize.WordPunctTokenizer().tokenize(sentence):
+        all_sentence_words = []
+        for token in nltk.tokenize.WordPunctTokenizer().tokenize(sentence):
             regex = '[a-zA-ZäöüÄÖÜß0-9]+'  # at least one of those must appear
-            if not match(regex, word):
+            if not re.match(regex, token):
                 continue
-            org_word = word
-            word = stemmer.stem(word)
+            original_token = token
+            token = stemmer.stem(token)
             try:
-                base2org[word]
+                token_2_word_dict[token]
             except KeyError:
-                base2org[word] = {}
+                token_2_word_dict[token] = {}
             try:
-                base2org[word][org_word] += 1
+                token_2_word_dict[token][original_token] += 1
             except KeyError:
-                base2org[word][org_word] = 1
-            pps.append(word)
-            words.append(word)
-        inwords.append(pps)
-    print('tag words')
+                token_2_word_dict[token][original_token] = 1
+            all_sentence_words.append(token)
+            all_tokens.append(token)
+        all_token_sentences.append(all_sentence_words)
 
-    # tokenize and POS-tag words
-    tagged_words = itertools.chain.from_iterable(
-        nltk.pos_tag_sents(inwords))
-    # filter on certain POS tags and lowercase all words
-    # candidates = [word.lower() for word, tag in tagged_words
-    #               if tag in good_tags and word.lower() not in stop_words
-    #               and not all(char in punct for char in word)]
+    tagged_tokens = itertools.chain.from_iterable(   nltk.pos_tag_sents(all_token_sentences))
 
-    candidates = [word for word, tag in tagged_words
-                  if tag in good_tags and word not in stop_words]
-
-    print('calc keywords')
+    candidate_tokens = [word for word, tag in tagged_tokens
+                  if tag in allowed_pos_tags and word not in stop_words]
 
     # build graph, each node is a unique candidate
     graph = networkx.Graph()
-    graph.add_nodes_from(set(candidates))
+    graph.add_nodes_from(set(candidate_tokens))
     # iterate over word-pairs, add unweighted edges into graph
     def pairwise(iterable):
         """s -> (s0,s1), (s1,s2), (s2, s3), ..."""
-        a, b = tee(iterable)
+        a, b = itertools.tee(iterable)
         next(b, None)
         return zip(a, b)
-    for w1, w2 in pairwise(candidates):
+    for w1, w2 in pairwise(candidate_tokens):
         if w2:
             graph.add_edge(*sorted([w1, w2]))
     # score nodes using default pagerank algorithm, sort by score, keep top n_keywords
+    n_keywords = 0.05
     ranks = networkx.pagerank(graph)
     if 0 < n_keywords < 1:
-        n_keywords = int(round(len(candidates) * n_keywords))
+        n_keywords = int(round(len(candidate_tokens) * n_keywords))
     word_ranks = {word_rank[0]: word_rank[1]
                   for word_rank in sorted(ranks.items(), key=lambda x: x[1], reverse=True)[:n_keywords]}
     keywords = set(word_ranks.keys())
     # merge keywords into keyphrases
     keyphrases = {}
     j = 0
-    for i, word in enumerate(words):
+    for i, word in enumerate(all_tokens):
         if i < j:
             continue
         if word in keywords:
-            kp_words = list(takewhile(lambda x: x in keywords, words[i:i+10]))
+            kp_words = list(itertools.takewhile(lambda x: x in keywords, all_tokens[i:i+10]))
             avg_pagerank = sum(word_ranks[w] for w in kp_words) / float(len(kp_words))
             keyphrases[' '.join(kp_words)] = avg_pagerank
-            # counter as hackish way to ensure merged keyphrases are non-overlapping
             j = i + len(kp_words)
 
-    print('postprocess')
 
     # replace phrases with most common orgiginal
-    keyphrases_original = {}
-    for keyphrase in keyphrases:
-        import operator
-        new_keyphrase = []
-        for subphrase in keyphrase.split(' '):
-            org_dict = base2org[subphrase]
-            org_dict = sorted(
-                org_dict.items(), key=operator.itemgetter(1), reverse=True)
-            org_subphrase = org_dict[0][0]
-            new_keyphrase.append(org_subphrase)
-        new_keyphrase = ' '.join(new_keyphrase)
-        keyphrases_original[new_keyphrase] = keyphrases[keyphrase]
-    # keyphrases_original = keyphrases
+    # keyphrases_original = {}
+    # for keyphrase in keyphrases:
+    #     import operator
+    #     new_keyphrase = []
+    #     for subphrase in keyphrase.split(' '):
+    #         org_dict = token_2_word_dict[subphrase]
+    #         org_dict = sorted(
+    #             org_dict.items(), key=operator.itemgetter(1), reverse=True)
+    #         org_subphrase = org_dict[0][0]
+    #         new_keyphrase.append(org_subphrase)
+    #     new_keyphrase = ' '.join(new_keyphrase)
+    #     keyphrases_original[new_keyphrase] = keyphrases[keyphrase]
+    keyphrases_original = keyphrases
 
     return sorted(keyphrases_original.items(), key=lambda x: x[1], reverse=True)
 
@@ -134,7 +130,7 @@ if __name__ == '__main__':
     terms = score_terms_by_textrank(text)
     i = 0
     for term, rank in terms:
-        print('{} >> {}'.format(term, rank))
+        print('{}\t{}'.format(rank, term))
         i += 1
         if i == 15:
             break
