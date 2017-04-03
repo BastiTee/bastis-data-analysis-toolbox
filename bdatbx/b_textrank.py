@@ -1,23 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+#
+#trump-sample-article.bdatbx
 # http://bdewilde.github.io/blog/2014/09/23/intro-to-automatic-keyphrase-extraction/
 #
-
-import nltk
-
-def remove_non_words(text):
-    from re import match
-    filtered_tokens = []
-    regex = '[a-zA-ZäöüÄÖÜß0-9]+'  # at least one of those must appear
-    for token in text.split(' '):
-        if match(regex, token):
-            filtered_tokens.append(token)
-    return ' '.join(filtered_tokens)
 
 def get_stopwords_for_language(language):
     from bdatbx import b_util
     from bptbx import b_iotools
+    import nltk
     stop_words = nltk.corpus.stopwords.words(language)
     path = b_util.load_resource_file('stopwords_{}_add.txt'.format(language))
     new_stopwords = b_iotools.read_file_to_list(path)
@@ -27,48 +19,56 @@ def get_stopwords_for_language(language):
     return stop_words
 
 
-def extract_candidate_words(text, good_tags=set(['JJ','JJR','JJS','NN','NNP','NNS','NNPS'])):
-    import itertools, nltk, string
+def score_terms_by_textrank(text, n_keywords=0.05):
+    from itertools import takewhile, tee
+    import nltk
+    import itertools, networkx, nltk, string
+    from re import match
+    from nltk.stem.snowball import SnowballStemmer
 
-    # exclude candidates that are stop words or entirely punctuation
-    punct = set(string.punctuation)
     stop_words = get_stopwords_for_language('german')
+    stemmer = SnowballStemmer('german', ignore_stopwords=False)
+    stop_words = set([stemmer.stem(stop_word) for stop_word in stop_words])
+
+    good_tags=set(['JJ','JJR','JJS','NN','NNP','NNS','NNPS'])
+    base2org = {}
+
+    print('tokenize')
+    words = []
+    inwords = []
+    for sentence in nltk.sent_tokenize(text):
+        pps = []
+        for word in nltk.tokenize.WordPunctTokenizer().tokenize(sentence):
+            regex = '[a-zA-ZäöüÄÖÜß0-9]+'  # at least one of those must appear
+            if not match(regex, word):
+                continue
+            org_word = word
+            word = stemmer.stem(word)
+            try:
+                base2org[word]
+            except KeyError:
+                base2org[word] = {}
+            try:
+                base2org[word][org_word] += 1
+            except KeyError:
+                base2org[word][org_word] = 1
+            pps.append(word)
+            words.append(word)
+        inwords.append(pps)
+    print('tag words')
 
     # tokenize and POS-tag words
     tagged_words = itertools.chain.from_iterable(
-        nltk.pos_tag_sents(nltk.word_tokenize(sent)
-        for sent in nltk.sent_tokenize(text)))
+        nltk.pos_tag_sents(inwords))
     # filter on certain POS tags and lowercase all words
-    candidates = [word.lower() for word, tag in tagged_words
-                  if tag in good_tags and word.lower() not in stop_words
-                  and not all(char in punct for char in word)]
+    # candidates = [word.lower() for word, tag in tagged_words
+    #               if tag in good_tags and word.lower() not in stop_words
+    #               and not all(char in punct for char in word)]
 
-    return candidates
+    candidates = [word for word, tag in tagged_words
+                  if tag in good_tags and word not in stop_words]
 
-def score_terms_by_textrank(text, n_keywords=0.05):
-    from itertools import takewhile, tee
-    import networkx, nltk
-
-    base2org = {}
-
-    text = remove_non_words(text)
-
-    words = []
-    for word in nltk.tokenize.WordPunctTokenizer().tokenize(text):
-        org_word = word
-        word = word.lower()
-        try:
-            base2org[word]
-        except KeyError:
-            base2org[word] = {}
-        try:
-            base2org[word][org_word] += 1
-        except KeyError:
-            base2org[word][org_word] = 1
-        words.append(word)
-
-    candidates = extract_candidate_words(text)
-
+    print('calc keywords')
 
     # build graph, each node is a unique candidate
     graph = networkx.Graph()
@@ -102,6 +102,8 @@ def score_terms_by_textrank(text, n_keywords=0.05):
             # counter as hackish way to ensure merged keyphrases are non-overlapping
             j = i + len(kp_words)
 
+    print('postprocess')
+
     # replace phrases with most common orgiginal
     keyphrases_original = {}
     for keyphrase in keyphrases:
@@ -115,18 +117,19 @@ def score_terms_by_textrank(text, n_keywords=0.05):
             new_keyphrase.append(org_subphrase)
         new_keyphrase = ' '.join(new_keyphrase)
         keyphrases_original[new_keyphrase] = keyphrases[keyphrase]
+    # keyphrases_original = keyphrases
 
     return sorted(keyphrases_original.items(), key=lambda x: x[1], reverse=True)
 
 if __name__ == '__main__':
-    from sys import argv, exit
+    import nltk
     from bptbx.b_iotools import read_file_to_list
+    from os import path
 
-    nltk.data.path.append(argv[2])
-    print('added nltk path {}'.format(argv[2]))
+    nltk.data.path.append('nltk-data')
 
-    ifile = argv[1]
-    text = ' '.join(read_file_to_list(ifile))
+    text = ' '.join(read_file_to_list(path.join(
+    'bdatbx_test/resource/trump-sample-article.bdatbx')))
 
     terms = score_terms_by_textrank(text)
     i = 0

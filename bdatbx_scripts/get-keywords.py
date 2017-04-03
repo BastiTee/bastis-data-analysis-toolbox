@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import with_statement
 
+# {"__lang_auto": {"$eq": "de"}, "__src_tags": {"$eq": ["Bonn"]}, "__te_tokencount": {"$gt": 500}}
+
 # ------------------------------------------------------------ CMD-LINE-PARSING
 from bdatbx import b_cmdprs
 prs = b_cmdprs.init('Tokenize raw text files')
@@ -64,7 +66,7 @@ if args.i and not col:
     for in_file in in_files:
         worker(in_file)
 elif col:
-    query = {"__lang_auto": {"$eq": "de"}, "__src_tags": {"$eq": ["Umwelt"]}}
+    query = {"__lang_auto": {"$eq": "de"}, "__src_tags": {"$eq": ["Bonn"]}, "__te_tokencount": {"$gt": 1000}}
     b_util.setup_progressbar(b_mongo.count_docs(col, query))
     cursor = b_mongo.find_docs(col, query, no_cursor_timeout=True)
     for doc in cursor:
