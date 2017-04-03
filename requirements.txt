@@ -4,6 +4,7 @@ gensim >= 0.13 # gensim # gensim
 scipy >= 0.18.1 # scipy # scipy
 numpy >= 1.6 # numpy # numpy
 langdetect >= 1.0.7 # langdetect # langdetect
+networkx >= 1.11 # networkx # networkx
 
 # parsing
 feedparser >= 5.1 # feedparser # feedparser

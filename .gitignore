@@ -1,8 +1,7 @@
 # Own additions
-_sanity/
-_full_parse/
+_*/
 nltk-data/
-_test/
+notes.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

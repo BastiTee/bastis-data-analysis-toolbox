@@ -28,10 +28,9 @@ from nltk.stem.snowball import SnowballStemmer
 if args.n:
     nltk.data.path.append(args.n)
     b_util.log('added nltk path {}'.format(args.n))
-from rake_nltk import Rake
-r = Rake()
 
 total_lines = []
+
 
 def worker(in_file, col=None, doc=None):
     try:
@@ -50,20 +49,10 @@ def worker(in_file, col=None, doc=None):
         if b_iotools.file_exists(raw_fname):
             return
         b_iotools.mkdirs(dirn)
-        # ------------------------------------------------
 
         text_lines = b_iotools.read_file_to_list(in_file, True)
         total_lines.append(' '.join(text_lines))
-        # r.extract_keywords_from_text(text_lines)
-        # print(r.get_ranked_phrases())
 
-        # ------------------------------------------------
-        # b_iotools.write_list_to_file(tokens, raw_fname)
-        # if b_iotools.file_exists(raw_fname):
-        #     b_mongo.set_null_safe(doc, b_const.DB_TOK_RAWFILE, raw_fname)
-        #     b_mongo.set_null_safe(doc, b_const.DB_TOK_RAWFILESIZE,
-        #     b_iotools.get_file_size(raw_fname))
-        # ------------------------------------------------
     finally:
         # b_mongo.replace_doc(col, doc)
         b_util.update_progressbar()
@@ -75,10 +64,8 @@ if args.i and not col:
     for in_file in in_files:
         worker(in_file)
 elif col:
-    # query = { "__lang_auto": { "$eq": "de" } }
-    query = { "__lang_auto": { "$eq": "de" },"__src_tags": { "$eq": ["Persönlich"] } }
+    query = {"__lang_auto": {"$eq": "de"}, "__src_tags": {"$eq": ["Umwelt"]}}
     b_util.setup_progressbar(b_mongo.count_docs(col, query))
-    # cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
     cursor = b_mongo.find_docs(col, query, no_cursor_timeout=True)
     for doc in cursor:
         plain_text = b_mongo.get_key_nullsafe(doc, b_const.DB_TE_RAWFILE)
@@ -98,6 +85,7 @@ for term, rank in terms:
     i += 1
     if i == 15:
         break
+
 
 def main():
     pass
