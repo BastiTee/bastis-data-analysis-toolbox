@@ -1,19 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-#
-#trump-sample-article.bdatbx
-# http://bdewilde.github.io/blog/2014/09/23/intro-to-automatic-keyphrase-extraction/
-#
-# https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-# NN | Noun, singular or mass |
-# NNS | Noun, plural |
-# NNP | Proper noun, singular |
-# NNPS | Proper noun, plural |
-# JJ | Adjective |
-# JJR | Adjective, comparative |
-# JJS | Adjective, superlative |
-
+# Based on http://bdewilde.github.io/blog/2014/09/23/
+# intro-to-automatic-keyphrase-extraction/
 
 def get_stemmer_for_language(language):
     return nltk.stem.snowball.SnowballStemmer(language, ignore_stopwords=False)
@@ -30,17 +18,25 @@ def get_stopwords_for_language(language):
     stop_words = set(stop_words + new_stopwords)
     return stop_words
 
+def get_stemmed_stopwords_for_language(language):
+    stop_words = get_stopwords_for_language(language)
+    stemmer = get_stemmer_for_language(language)
+    return set([stemmer.stem(stop_word) for stop_word in stop_words])
 
 def score_terms_by_textrank(text, language='german'):
     import nltk, itertools, networkx, nltk, string, re
 
-    stop_words = get_stopwords_for_language(language)
+    stop_words = get_stemmed_stopwords_for_language(language)
     stemmer = get_stemmer_for_language(language)
-    stop_words = set([stemmer.stem(stop_word) for stop_word in stop_words])
+
     allowed_pos_tags=set(['FW', 'JJ','JJR','JJS','NN','NNP','NNS','NNPS'])
     token_2_word_dict = {}
     all_tokens = []
     all_token_sentences = []
+    ngram_buffer = ["", "", ""]
+    ngram_buffer_org = ["", "", ""]
+    max_ngram_len = 3
+    window_shift = 2
 
     for sentence in nltk.sent_tokenize(text):
         all_sentence_words = []
@@ -50,14 +46,25 @@ def score_terms_by_textrank(text, language='german'):
                 continue
             original_token = token
             token = stemmer.stem(token)
-            try:
-                token_2_word_dict[token]
-            except KeyError:
-                token_2_word_dict[token] = {}
-            try:
-                token_2_word_dict[token][original_token] += 1
-            except KeyError:
-                token_2_word_dict[token][original_token] = 1
+            for idx in reversed(range(0, max_ngram_len-1)):
+                ngram_buffer[idx+1] = ngram_buffer[idx]
+                ngram_buffer_org[idx+1] = ngram_buffer_org[idx]
+            ngram_buffer[0] = token
+            ngram_buffer_org[0] = original_token
+
+            for idx in range(0, max_ngram_len-window_shift):
+                if window_shift > 0:
+                    window_shift -= 1
+                ngram = ' '.join(reversed(ngram_buffer[0:idx+1])).strip()
+                ngram_org = ' '.join(reversed(ngram_buffer_org[0:idx+1])).strip()
+                try:
+                    token_2_word_dict[ngram]
+                except KeyError:
+                    token_2_word_dict[ngram] = {}
+                try:
+                    token_2_word_dict[ngram][ngram_org] += 1
+                except KeyError:
+                    token_2_word_dict[ngram][ngram_org] = 1
             all_sentence_words.append(token)
             all_tokens.append(token)
         all_token_sentences.append(all_sentence_words)
@@ -100,34 +107,54 @@ def score_terms_by_textrank(text, language='german'):
             j = i + len(kp_words)
 
 
-    # replace phrases with most common orgiginal
-    # keyphrases_original = {}
-    # for keyphrase in keyphrases:
-    #     import operator
-    #     new_keyphrase = []
-    #     for subphrase in keyphrase.split(' '):
-    #         org_dict = token_2_word_dict[subphrase]
-    #         org_dict = sorted(
-    #             org_dict.items(), key=operator.itemgetter(1), reverse=True)
-    #         org_subphrase = org_dict[0][0]
-    #         new_keyphrase.append(org_subphrase)
-    #     new_keyphrase = ' '.join(new_keyphrase)
-    #     keyphrases_original[new_keyphrase] = keyphrases[keyphrase]
-    keyphrases_original = keyphrases
+    keyphrases_original = {}
+    for keyphrase in keyphrases:
+        import operator
+        new_keyphrase = []
+
+        try:
+            org_dict = token_2_word_dict[keyphrase]
+            org_dict = sorted(
+                org_dict.items(), key=operator.itemgetter(1), reverse=True)
+            new_keyphrase = org_dict[0][0]
+        except KeyError:
+            for subphrase in keyphrase.split(' '):
+                org_dict = token_2_word_dict[subphrase]
+                org_dict = sorted(
+                    org_dict.items(), key=operator.itemgetter(1), reverse=True)
+                org_subphrase = org_dict[0][0]
+                new_keyphrase.append(org_subphrase)
+            new_keyphrase = ' '.join(new_keyphrase)
+        keyphrases_original[new_keyphrase] = keyphrases[keyphrase]
 
     return sorted(keyphrases_original.items(), key=lambda x: x[1], reverse=True)
 
 if __name__ == '__main__':
     import nltk
+    from bdatbx import b_parse
     from bptbx.b_iotools import read_file_to_list
     from os import path
+    from requests import get
+    from sys import argv, exit
 
     nltk.data.path.append('nltk-data')
 
-    text = ' '.join(read_file_to_list(path.join(
-    'bdatbx_test/resource/trump-sample-article.bdatbx')))
+    url = argv[1]
+    if not url:
+        print('No URL given.')
+        exit(1)
 
-    terms = score_terms_by_textrank(text)
+    in_html = None
+    try:
+        r = get(url, timeout=10)
+        in_html = r.text
+    except Exception as e:
+        print('Could not download \'{}\' with error: {}'.format(url, e))
+        exit(1)
+
+    in_text = b_parse.extract_main_text_content(in_html)
+
+    terms = score_terms_by_textrank(in_text)
     i = 0
     for term, rank in terms:
         print('{}\t{}'.format(rank, term))
