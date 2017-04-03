@@ -59,9 +59,9 @@ bptbx_dir="${script_dir}/../_bptbx_install"
   cd $bptbx_dir
   sudo -H $PY -m pip install -r requirements.txt
   cd ..
+  bptbx_linktarget="$( readlink -f ${script_dir}/../ )/bptbx"
+  ln -s ${bptbx_dir}/bptbx $bptbx_linktarget
 }
-bptbx_linktarget="$( readlink -f ${script_dir}/../ )/bptbx"
-ln -fs ${bptbx_dir}/bptbx $bptbx_linktarget
 
 cd ${script_dir}/..
 $PY -m bdatbx_test.test_suite
