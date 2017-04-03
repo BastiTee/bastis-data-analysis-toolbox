@@ -1,8 +1,8 @@
 function stdoutlog () {
   [ -z $( command -v tput ) ] && {
-    echo -e "\n--- $@\n"
+    echo -e "--- $@"
     } || {
-    echo -e "\n$( tput setaf 1)$@$( tput sgr0 )\n"
+    echo -e "$( tput setaf 1)$@$( tput sgr0 )"
   }
 }
 
@@ -39,9 +39,4 @@ function get_python_com () {
     PY="python"
   }
   echo $PY
-}
-
-[ -d "../bastis-python-toolbox" ] && {
-  stdoutlog "Extending python path with a local bptbx version.."
-  export PYTHONPATH=${PYTHONPATH}:../bastis-python-toolbox
 }
