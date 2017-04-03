@@ -63,6 +63,15 @@ def get_snapshot_cursor(col, no_cursor_timeout=False):
     return col.find({}, modifiers={"$snapshot": True},
         no_cursor_timeout=no_cursor_timeout)
 
+def find_docs(col, query, no_cursor_timeout=False, limit=None):
+    if col is None:
+        return  # Bypass database on missing connectivity
+    if limit:
+        return col.find(query, modifiers={"$snapshot": True},
+            no_cursor_timeout=no_cursor_timeout)
+    else:
+        return col.find(query, modifiers={"$snapshot": True},
+            no_cursor_timeout=no_cursor_timeout)
 
 def get_doc_or_none(col, key, value):
     if col is None:
@@ -82,6 +91,12 @@ def get_collection_size(col):
     if col is None:
         return  # Bypass database on missing connectivity
     return col.count()
+
+
+def count_docs(col, query):
+    if col is None:
+        return  # Bypass database on missing connectivity
+    return col.count(query)
 
 
 def clear_collection(col):

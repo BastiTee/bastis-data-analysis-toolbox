@@ -36,7 +36,7 @@ stdoutlog "configuring nltk"
 [ "$1" == "-manual" ] && {
   $PY -c "import nltk; nltk.download()"
   } || {
-  for module in averaged_perceptron_tagger stopwords; do
+  for module in averaged_perceptron_tagger stopwords punkt tokenize; do
     $PY -c \
     "import nltk; nltk.download('$module', download_dir='nltk-data');"
   done
