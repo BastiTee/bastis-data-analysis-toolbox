@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Based on http://bdewilde.github.io/blog/2014/09/23/
-# intro-to-automatic-keyphrase-extraction/
+"""Implementation of textrank algorithm for keyword extration.
+
+Based on http://bdewilde.github.io/blog/2014/09/23/
+intro-to-automatic-keyphrase-extraction/
+"""
 
 
 def score_terms_by_textrank(text, language='german'):
+    """Return scored textrank terms for given text and language."""
     import itertools
     import networkx
-    import string
     import re
     import operator
     from bdatbx import b_preproc, b_util
@@ -37,9 +40,8 @@ def score_terms_by_textrank(text, language='german'):
         all_tokens.append(token)
         if token in stop_words:
             continue
-        if not pos_tag in allowed_pos_tags:
+        if pos_tag not in allowed_pos_tags:
             continue
-        #print('{} -- {} -- {}'.format(original_token, token, pos_tag))
         candidate_tokens.append(token)
 
         for idx in reversed(range(0, max_ngram_len - 1)):
@@ -71,12 +73,7 @@ def score_terms_by_textrank(text, language='german'):
     graph.add_nodes_from(set(candidate_tokens))
     # iterate over word-pairs, add unweighted edges into graph
 
-    def pairwise(iterable):
-        """s -> (s0,s1), (s1,s2), (s2, s3), ..."""
-        a, b = itertools.tee(iterable)
-        next(b, None)
-        return zip(a, b)
-    for w1, w2 in pairwise(candidate_tokens):
+    for w1, w2 in _pairwise(candidate_tokens):
         if w2:
             graph.add_edge(*sorted([w1, w2]))
 
@@ -86,8 +83,10 @@ def score_terms_by_textrank(text, language='german'):
     ranks = networkx.pagerank(graph)
     if 0 < n_keywords < 1:
         n_keywords = int(round(len(candidate_tokens) * n_keywords))
-    word_ranks = {word_rank[0]: word_rank[1]
-                  for word_rank in sorted(ranks.items(), key=lambda x: x[1], reverse=True)[:n_keywords]}
+    word_ranks = {
+        word_rank[0]: word_rank[1]
+        for word_rank in sorted(ranks.items(), key=lambda x: x[1],
+                                reverse=True)[:n_keywords]}
     keywords = set(word_ranks.keys())
 
     # merge keywords into keyphrases
@@ -123,13 +122,21 @@ def score_terms_by_textrank(text, language='german'):
             new_keyphrase = ' '.join(new_keyphrase)
         keyphrases_original[new_keyphrase] = keyphrases[keyphrase]
 
-    return sorted(keyphrases_original.items(), key=lambda x: x[1], reverse=True)
+    return sorted(
+        keyphrases_original.items(), key=lambda x: x[1], reverse=True)
+
+
+def _pairwise(iterable):
+    """Uses: s -> (s0,s1), (s1,s2), (s2, s3), ..."""
+    import itertools
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
 
 if __name__ == '__main__':
     import nltk
     from bdatbx import b_parse
-    from bptbx.b_iotools import read_file_to_list
-    from os import path
     from requests import get
     from sys import argv, exit
 

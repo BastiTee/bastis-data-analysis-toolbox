@@ -1,10 +1,8 @@
-r"""Methods to gather statistics about the provided input data."""
+"""Methods to gather statistics about the provided input data."""
 
 
 def gather_basic_numerical_stats(array):
-    r"""Calculate basic statistical values about a list of
-    numerical values."""
-
+    """Calculate basic statistical values about a list of numerical values."""
     if array is None:
         array = []
 

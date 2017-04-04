@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""Obtain topics from given text content."""
+
+from gensim import corpora
+import gensim.models.word2vec
+from bptbx import b_iotools
+from bdatbx import b_cmdprs, b_util
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
-from bdatbx import b_cmdprs, b_util
 b_util.notify_start(__file__)
 prs = b_cmdprs.init('Generate LDA-based topic models')
 b_cmdprs.add_dir_in(prs)
@@ -13,11 +18,6 @@ b_cmdprs.check_dir_in(prs, args)
 b_cmdprs.check_dir_out_and_chdir(prs, args)
 # -----------------------------------------------------------------------------
 
-import os
-from argparse import ArgumentParser
-from gensim import corpora, models
-import gensim.models.word2vec
-from bptbx import b_iotools
 
 lda_topics = 5
 lda_passes = 2
@@ -44,4 +44,5 @@ for topic in ldamodel.print_topics(num_topics=lda_topics, num_words=6):
 
 
 def main():
+    """Void main entry."""
     pass

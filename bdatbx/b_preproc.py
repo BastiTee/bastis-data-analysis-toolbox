@@ -1,14 +1,21 @@
-r"""Functions for preprocessing text data."""
+"""Functions for preprocessing text data."""
 
 
 def get_stemmer_for_language(language):
+    """Return stemmer for given language."""
     import nltk
     return nltk.stem.snowball.SnowballStemmer(language, ignore_stopwords=False)
 
 
 def get_allowed_postags(language):
-    # https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-    # https://www.linguistik.hu-berlin.de/de/institut/professuren/korpuslinguistik/mitarbeiter-innen/hagen/STTS_Tagset_Tiger
+    """Return a list of allowed POS-tags depending on language.
+
+    There are two versions popular.
+    1) PENN Treebank
+    https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+    2) STSS Tiger Tagset
+    https://www.linguistik.hu-berlin.de/de/institut/professuren/korpuslinguistik/mitarbeiter-innen/hagen/STTS_Tagset_Tiger
+    """
     apt = {
         'english': set(
             ['FW', 'JJ', 'JJR', 'JJS', 'NN', 'NNP', 'NNS', 'NNPS']),
@@ -21,6 +28,7 @@ def get_allowed_postags(language):
 
 
 def get_stopwords_for_language(language):
+    """Return a set of stopwords for the given language."""
     from bdatbx import b_util
     from bptbx import b_iotools
     import nltk
@@ -35,12 +43,14 @@ def get_stopwords_for_language(language):
 
 
 def get_stemmed_stopwords_for_language(language):
+    """Return a set of stemmed stopwords for the given language."""
     stop_words = get_stopwords_for_language(language)
     stemmer = get_stemmer_for_language(language)
     return set([stemmer.stem(stop_word) for stop_word in stop_words])
 
 
 def get_token_sentences(text):
+    """Split up given text into sentences and tokens."""
     import nltk
     token_sentences = []
     for s in nltk.sent_tokenize(text):
@@ -51,7 +61,35 @@ def get_token_sentences(text):
     return token_sentences
 
 
-def print_postag_table(tagged_tokens, print=False):
+def postag_sentences(tok_sen, language, sanity_print=False):
+    """Create POS-tags for given sentence/token list of lists."""
+    import itertools
+    import nltk
+    tagged_tokens = itertools.chain.from_iterable(
+        nltk.pos_tag_sents(tok_sen))
+    _print_postag_table(tagged_tokens, sanity_print)
+    return tagged_tokens
+
+
+def postag_sentences_stanford(tok_sen, language, sanity_print=False):
+    """Create POS-tags for given sentence/token list of lists."""
+    import itertools
+    import nltk
+    import os
+    from bdatbx import b_util
+    pos_tagger_path = b_util.get_resource_filepath('stanford-postagger')
+    pos_tagger = nltk.tag.stanford.StanfordPOSTagger(
+        os.path.join(pos_tagger_path, 'models', 'german-fast.tagger'),
+        path_to_jar=os.path.join(
+            pos_tagger_path, 'stanford-postagger.jar'),
+        encoding='utf-8')
+    output = pos_tagger.tag_sents(tok_sen)
+    tagged_tokens = itertools.chain.from_iterable(output)
+    _print_postag_table(tagged_tokens, sanity_print)
+    return tagged_tokens
+
+
+def _print_postag_table(tagged_tokens, print=False):
     from bdatbx import b_util
     if not print:
         return
@@ -59,27 +97,3 @@ def print_postag_table(tagged_tokens, print=False):
     for key, val in list(tagged_tokens)[:100]:
         t.append([key, val])
     b_util.print_table(t, headers=['Token', 'POS-TAG'])
-
-
-def postag_sentences(tok_sen, language, sanity_print=False):
-    import itertools
-    import nltk
-    tagged_tokens = itertools.chain.from_iterable(
-        nltk.pos_tag_sents(tok_sen))
-    print_postag_table(tagged_tokens, sanity_print)
-    return tagged_tokens
-
-
-def postag_sentences_stanford(tok_sen, language, sanity_print=False):
-    import itertools
-    import nltk
-    import os
-    from bdatbx import b_util
-    pos_tagger_path = b_util.get_resource_filepath('stanford-postagger')
-    pos_tagger = nltk.tag.stanford.StanfordPOSTagger(
-        os.path.join(pos_tagger_path, 'models', 'german-fast.tagger'), path_to_jar=os.path.join(pos_tagger_path, 'stanford-postagger.jar'),
-        encoding='utf-8')
-    output = pos_tagger.tag_sents(tok_sen)
-    tagged_tokens = itertools.chain.from_iterable(output)
-    print_postag_table(tagged_tokens, sanity_print)
-    return tagged_tokens

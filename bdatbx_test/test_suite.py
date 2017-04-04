@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""Test runner for data toolbox."""
 
-from tempfile import mkdtemp
-from shutil import rmtree
 import unittest
 from os import path
 from bptbx import b_iotools
 
 
 class MainTestSuite(unittest.TestCase):
+    """Test suite for data toolbox."""
 
-    def get_res_path(self, basename):
+    def _get_res_path(self, basename):
         if basename is None:
             self.fail('Test resource cannot be empty')
         script_path = path.dirname(path.abspath(__file__))
@@ -20,7 +20,9 @@ class MainTestSuite(unittest.TestCase):
         return res_path
 
     def test_lists(self):
+        """Test the b_lists package."""
         from bdatbx import b_lists
+
         # ------------
         result = b_lists.split_list_to_equal_buckets(
             [1, 2, 3, 4, 5, 6, 7, 8], 3)
@@ -46,6 +48,7 @@ class MainTestSuite(unittest.TestCase):
         # ------------
 
     def test_math(self):
+        """Test the b_math package."""
         from bdatbx import b_math
         # ------------
         self.assertEqual(2.8, b_math.round_ns(2.82323, 1))
@@ -56,6 +59,7 @@ class MainTestSuite(unittest.TestCase):
         # ------------
 
     def test_parse(self):
+        """Test the b_parse package."""
         from bdatbx import b_parse
         # ------------
         self.assertRaises(ValueError, b_parse.contains, None, None)
@@ -67,35 +71,29 @@ class MainTestSuite(unittest.TestCase):
                           b_parse.parse_basic_money_format_to_float, None)
         self.assertRaises(ValueError,
                           b_parse.parse_basic_money_format_to_float, 'sasd')
-        self.assertEqual(-1232.23,
-                         b_parse.parse_basic_money_format_to_float('-1.232,23'))
+        self.assertEqual(
+            -1232.23,
+            b_parse.parse_basic_money_format_to_float('-1.232,23'))
         # ------------
         dat_in = '\n'.join(
-            b_iotools.read_file_to_list(self.get_res_path('html-in.txt')))
+            b_iotools.read_file_to_list(
+                self._get_res_path('html-in.txt')))
         dat_out = '\n'.join(
-            b_iotools.read_file_to_list(self.get_res_path('raw-text-out.txt')))
+            b_iotools.read_file_to_list(
+                self._get_res_path('raw-text-out.txt')))
         raw_text = b_parse.extract_main_text_content(dat_in)
         self.assertEqual(dat_out, raw_text)
         # ------------
         self.assertEqual(b_parse.get_domain_from_uri(
-        'https://www.google.de/asf?sfas=sfa'), 'www.google.de')
+            'https://www.google.de/asf?sfas=sfa'), 'www.google.de')
         self.assertEqual(b_parse.get_domain_from_uri(
-        'http://google.de/asf?sfas=sfa'), 'google.de')
+            'http://google.de/asf?sfas=sfa'), 'google.de')
         self.assertEqual(b_parse.get_domain_from_uri(
-        'http://google.de:80/asf?sfas=sfa'), 'google.de')
+            'http://google.de:80/asf?sfas=sfa'), 'google.de')
         self.assertEqual(b_parse.get_domain_from_uri(None), None)
-        # ------------
-        # without obfuscated text, don't do anything
-        # dat_in = '\n'.join(
-        #     b_iotools.read_file_to_list(self.get_res_path('html-in.txt')))
-        # dat_out = b_parse.deobfuscate_spiegel_plus_content(dat_in)
-        # self.assertEqual(dat_in, dat_out)
-        # with obfuscated text, translate text
-        # dat_in = '\n'.join(
-        #     b_iotools.read_file_to_list(self.get_res_path('spiegel-plus.txt')))
-        # dat_out = b_parse.deobfuscate_spiegel_plus_content(dat_in)
 
     def test_stats(self):
+        """Test the b_stats package."""
         from bdatbx import b_stats
         # ------------
         empty_expected = {'sum': None, 'mean': None, 'min': None,
@@ -116,6 +114,7 @@ class MainTestSuite(unittest.TestCase):
         # ------------
 
     def test_mongo(self):
+        """Test the b_mongo package."""
         from bdatbx import b_mongo
         col = b_mongo.get_client_for_collection('bonnerblogs')
         self.assertTrue(col is not None)
@@ -155,10 +154,10 @@ class MainTestSuite(unittest.TestCase):
         self.assertFalse(updated_roger is None)
         self.assertTrue(updated_roger['sur'] == 'taylor')
         b_mongo.update_value_nullsafe(col, updated_roger, 'sur')
-        self.assertTrue(updated_roger['sur'] == None)
+        self.assertTrue(updated_roger['sur'] is None)
         updated_roger = b_mongo.get_doc_or_none(col, 'name', 'roger')
         self.assertFalse(updated_roger is None)
-        self.assertTrue(updated_roger['sur'] == None)
+        self.assertTrue(updated_roger['sur'] is None)
 
         i = 10
         for doc in b_mongo.get_snapshot_cursor(col):
@@ -175,11 +174,14 @@ class MainTestSuite(unittest.TestCase):
 
 
 def main():
+    """Main test controller."""
     from bdatbx import b_util
+
     b_util.log('Invoking test suite...')
     suite = unittest.TestLoader().loadTestsFromTestCase(MainTestSuite)
     unittest.TextTestRunner(verbosity=2).run(suite)
     b_util.log('Finished test suite...')
+
 
 if __name__ == '__main__':
     main()

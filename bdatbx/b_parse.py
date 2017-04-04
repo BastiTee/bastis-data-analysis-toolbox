@@ -1,10 +1,8 @@
-r"""Utility belt to parse, match or convert recurring data formats."""
+"""Parse, match or convert recurring data formats."""
 
 
 def parse_basic_money_format_to_float(amount):
-    """Converts the basic money format, e.g., '-1.000,00' or '123.32'
-    to a float value."""
-
+    """Convert money format, e.g., '-1.000,00' or '123.32' to a float."""
     if amount is None:
         raise ValueError('Amount cannot be None')
     from re import match, sub
@@ -19,8 +17,7 @@ def parse_basic_money_format_to_float(amount):
 
 
 def contains(pattern, string):
-    """A convenience function to quickly test if a string
-    contains a pattern."""
+    """Quickly test if a string contains a pattern."""
     if pattern is None:
         raise ValueError('Pattern cannot be None')
     if string is None:
@@ -32,6 +29,7 @@ def contains(pattern, string):
 
 
 def get_domain_from_uri(uri):
+    """Extract the domain from the given URI string."""
     if not uri:
         return None
     from urllib import parse
@@ -42,16 +40,17 @@ def get_domain_from_uri(uri):
 
 
 def extract_main_text_content(html):
-    """A method to extract the main content of a given HTML page. This code
-    has been adapted from http://nirmalpatel.com/fcgi/hn.py (GPLv3) written
-    by Nirmal Patel."""
+    """A method to extract the main content of a given HTML page.
 
+    This code has been adapted from http://nirmalpatel.com/fcgi/hn.py (GPLv3)
+    written by Nirmal Patel.
+    """
     import re
     from bs4 import BeautifulSoup
 
     negative = re.compile('comment|meta|footer|footnote|foot')
     positive = re.compile('post|hentry|entry|content|text|body|article')
-    punctation = re.compile('''[!'#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~]''')
+    # punctation = re.compile('''[!'#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~]''')
 
     replace_brs = re.compile('<br */? *>[ \r\n]*<br */? *>')
     html = re.sub(replace_brs, '</p><p>', html)
@@ -89,7 +88,7 @@ def extract_main_text_content(html):
                 if (positive.match(str(parent['id']))):
                     parent.score += 25
 
-        if (parent.score == None):
+        if (parent.score is None):
             parent.score = 0
 
         # ''.join(paragraph.findAll(text=True))
@@ -156,5 +155,7 @@ def _extract_main_text_content_remove_divs(parent):
 
         if (str(d.renderContents()).count(',') < 10):
             if ((pre == 0) and (code == 0)):
-                if ((img > p) or (li > p) or (a > p) or (p == 0) or (embed > 0)):
+                if (
+                        (img > p) or (li > p) or (a > p) or (p == 0)
+                        or (embed > 0)):
                     d.extract()

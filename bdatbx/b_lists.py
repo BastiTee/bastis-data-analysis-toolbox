@@ -1,10 +1,8 @@
-r"""Various methods to process lists of things."""
+"""Various methods to process lists of things."""
 
 
 def split_list_to_equal_buckets(list_to_split, desired_buckets=10):
-    """This method splits a given list into a list of equally sized buckets
-       containing the data in the original order."""
-
+    """Split a given list into a list of equally sized buckets."""
     if list_to_split is None or len(list_to_split) < 1:
         raise ValueError('Given list to reduce was empty')
 
@@ -53,11 +51,10 @@ def split_list_to_equal_buckets(list_to_split, desired_buckets=10):
 
 
 def reduce_list(list_to_reduce, desired_elements=10):
-    """Reduces a list to the given number of elements,
-    averaging over blocks."""
-
+    """Reduce list to a number of elements, averaging over blocks."""
     subsets = split_list_to_equal_buckets(list_to_reduce, desired_elements)
-    avg = lambda x: sum(x) / len(x)
+
+    def avg(x): return sum(x) / len(x)
 
     out_list = []
     for subset in subsets:
@@ -68,8 +65,7 @@ def reduce_list(list_to_reduce, desired_elements=10):
 
 
 def intersect(list_a, list_b):
-    """Intersects the two given lists."""
-
+    """Intersect the two given lists."""
     if list_a is None or list_b is None:
         raise ValueError('Lists cannot be none')
     return list(set(list_a) & set(list_b))

@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""Takes raw text content and writes out tokens."""
+
 from __future__ import with_statement
 
+import os
+import nltk
+from bptbx import b_iotools, b_threading
+from bdatbx import b_lists, b_mongo, b_const, b_cmdprs, b_util
+from nltk.corpus import stopwords
+from nltk.stem.snowball import SnowballStemmer
+
 # ------------------------------------------------------------ CMD-LINE-PARSING
-from bdatbx import b_cmdprs, b_util
 b_util.notify_start(__file__)
 prs = b_cmdprs.init('Tokenize raw text files')
 b_cmdprs.add_dir_in(prs)
@@ -20,21 +28,15 @@ b_cmdprs.check_max_threads(prs, args)
 col = b_cmdprs.check_mongo_collection(prs, args)
 # -----------------------------------------------------------------------------
 
-import os
-import nltk
-from bptbx import b_iotools, b_threading
-from bdatbx import b_lists, b_mongo, b_const
-from nltk.corpus import stopwords
-from nltk.stem.snowball import SnowballStemmer
 
-def tokenize(text_lines):
+def _tokenize(text_lines):
     tokens = []
     for text_line in text_lines:
         tokens += nltk.tokenize.WordPunctTokenizer().tokenize(text_line)
     return tokens
 
 
-def remove_nonwords(tokens):
+def _remove_nonwords(tokens):
     from re import match
     filtered_tokens = []
     regex = '[a-zA-ZäöüÄÖÜß0-9]+'  # at least one of those must appear
@@ -44,7 +46,7 @@ def remove_nonwords(tokens):
     return filtered_tokens
 
 
-def detect_language(tokens, doc=None):
+def _detect_language(tokens, doc=None):
     # check if we detected language before
     lang_db = b_mongo.get_key_nullsafe(doc, b_const.DB_LANG_AUTO)
     # if not try to decide between german and english
@@ -59,13 +61,14 @@ def detect_language(tokens, doc=None):
     except KeyError:
         return SUPPORTED_LANGS['unk']
 
-def stem(tokens, stemmer, stem_2_source_dict):
+
+def _stem(tokens, stemmer, stem_2_source_dict):
     stemmed_tokens = []
     for token in tokens:
         stem = stemmer.stem(token)
         stemmed_tokens.append(stem)
         try:
-            dict_entry = stem_2_source_dict[stem]
+            stem_2_source_dict[stem]
         except KeyError:  # stem never counted
             stem_2_source_dict[stem] = {}
         try:
@@ -77,15 +80,15 @@ def stem(tokens, stemmer, stem_2_source_dict):
     return stemmed_tokens
 
 
-def stopword_removal(tokens, stopwords):
+def _stopword_removal(tokens, stopwords):
     filtered_tokens = []
     for token in tokens:
-        if not token in stopwords:
+        if token not in stopwords:
             filtered_tokens.append(token)
     return filtered_tokens
 
 
-def write_dictionary_to_file(dictionary, stopwords, filename):
+def _write_dictionary_to_file(dictionary, stopwords, filename):
     sorted_dictionary = {}
     for dict_key in dictionary:  # for each stem in dictionary
         if dict_key in stopwords:
@@ -95,7 +98,8 @@ def write_dictionary_to_file(dictionary, stopwords, filename):
         sorted_entries = []
         # sort stem variations by count
         for key, value in sorted(
-                dict_value.items(), key=lambda item: (item[1], item[0]), reverse=True):
+            dict_value.items(), key=lambda item: (item[1], item[0]),
+                reverse=True):
             sorted_entries.append(key)
             sorted_entries.append(value)
             total_count = total_count + value
@@ -107,12 +111,13 @@ def write_dictionary_to_file(dictionary, stopwords, filename):
     # sort dictionary by stem count and write to file
     ofile = open(filename, 'w')
     for key, value in sorted(
-            sorted_dictionary.items(), key=lambda item: (item[1], item[0]), reverse=True):
+            sorted_dictionary.items(), key=lambda item: (
+            item[1], item[0]), reverse=True):
         ofile.write(key)
     ofile.close()
 
 
-def extend_stopwords_with_manual_list(stopwords, lang):
+def _extend_stopwords_with_manual_list(stopwords, lang):
     path = b_util.get_resource_filepath('stopwords_{}_add.txt'.format(lang))
     new_stopwords = b_iotools.read_file_to_list(path)
     b_util.log('Will add {} stopwords from {} to {} stopword list'.format(
@@ -120,7 +125,8 @@ def extend_stopwords_with_manual_list(stopwords, lang):
     stopwords += new_stopwords
     return stopwords
 
-def worker(in_file, col=None, doc=None):
+
+def _worker(in_file, col=None, doc=None):
     try:
         # when using mongo, check if word count is relevant
         if doc is not None:
@@ -139,11 +145,11 @@ def worker(in_file, col=None, doc=None):
         b_iotools.mkdirs(dirn)
         # ------------------------------------------------
         text_lines = b_iotools.read_file_to_list(in_file, True)
-        tokens = tokenize(text_lines)
-        tokens = remove_nonwords(tokens)
-        lang_kit = detect_language(tokens, doc)
-        tokens = stem(tokens, lang_kit['stemmer'], lang_kit['s2s'])
-        tokens = stopword_removal(tokens, lang_kit['sw'])
+        tokens = _tokenize(text_lines)
+        tokens = _remove_nonwords(tokens)
+        lang_kit = _detect_language(tokens, doc)
+        tokens = _stem(tokens, lang_kit['stemmer'], lang_kit['s2s'])
+        tokens = _stopword_removal(tokens, lang_kit['sw'])
         b_mongo.set_null_safe(doc, b_const.DB_TOK_WC, len(tokens))
         b_mongo.set_null_safe(doc, b_const.DB_TOK_TOKENS, tokens)
         # ------------------------------------------------
@@ -151,11 +157,12 @@ def worker(in_file, col=None, doc=None):
         if b_iotools.file_exists(raw_fname):
             b_mongo.set_null_safe(doc, b_const.DB_TOK_RAWFILE, raw_fname)
             b_mongo.set_null_safe(doc, b_const.DB_TOK_RAWFILESIZE,
-            b_iotools.get_file_size(raw_fname))
+                                  b_iotools.get_file_size(raw_fname))
         # ------------------------------------------------
     finally:
         b_mongo.replace_doc(col, doc)
         b_util.update_progressbar()
+
 
 # setup language tools
 if args.n:
@@ -163,18 +170,20 @@ if args.n:
     b_util.log('added nltk path {}'.format(args.n))
 
 SUPPORTED_LANGS = {
-    'de': { 'name': 'german' },
-    'en': { 'name': 'english' },
-    'es': { 'name': 'spanish' },
-    'unk': { 'name': 'unknown'}
+    'de': {'name': 'german'},
+    'en': {'name': 'english'},
+    'es': {'name': 'spanish'},
+    'unk': {'name': 'unknown'}
 }
 for iso, lang_kit in SUPPORTED_LANGS.items():
     if iso == 'unk':
         continue
     lang = lang_kit['name']
     lang_kit['stemmer'] = SnowballStemmer(lang, ignore_stopwords=False)
-    lang_kit['sw'] = [lang_kit['stemmer'].stem(sw) for sw in extend_stopwords_with_manual_list(
-        stopwords.words(lang), lang)]
+    lang_kit['sw'] = (
+        [lang_kit['stemmer'].stem(sw)
+         for sw in _extend_stopwords_with_manual_list(
+            stopwords.words(lang), lang)])
     lang_kit['s2s'] = {}
     b_util.log('-- finished setup for language {}/{}'.format(iso, lang))
 SUPPORTED_LANGS['unk']['stemmer'] = SUPPORTED_LANGS['en']['stemmer']
@@ -186,7 +195,7 @@ if args.i and not col:
     in_files = b_util.read_valid_inputfiles(args.i)
     b_util.setup_progressbar(len(in_files))
     for in_file in in_files:
-        worker(in_file)
+        _worker(in_file)
 elif col:
     b_util.setup_progressbar(b_mongo.get_collection_size(col))
     cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
@@ -194,7 +203,7 @@ elif col:
         raw_text = b_mongo.get_key_nullsafe(doc, b_const.DB_TE_RAWFILE)
         if raw_text:
             in_file = os.path.join(args.i, raw_text)
-            pool.add_task(worker, in_file, col, doc)
+            pool.add_task(_worker, in_file, col, doc)
     cursor.close()
 pool.wait_completion()
 b_util.finish_progressbar()
@@ -203,7 +212,9 @@ b_util.finish_progressbar()
 for kit in list(SUPPORTED_LANGS.values()):
     ofile = 'token_dict_{}.txt'.format(kit['name'])
     b_iotools.remove_silent(ofile)
-    write_dictionary_to_file(kit['s2s'], kit['sw'], ofile)
+    _write_dictionary_to_file(kit['s2s'], kit['sw'], ofile)
+
 
 def main():
+    """Void main entry."""
     pass

@@ -1,3 +1,5 @@
+"""Package-wide constants."""
+
 GLOBAL_INFILE_SUFFIX = 'bdatbx'
 DEFAULT_CONTENT_LANG = 'de'
 

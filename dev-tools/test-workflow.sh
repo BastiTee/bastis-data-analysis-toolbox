@@ -18,7 +18,7 @@ echo "Running python: $( $PY --version )"
   mkdir -p "$1"
 }
 [ ! -d "$workdir" ] && {
-    echo "Parameter must be an existing working directory."; exit 1;
+  echo "Parameter must be an existing working directory."; exit 1;
 }
 
 # setup files and folders
