@@ -159,6 +159,7 @@ def finish_progressbar():
     global p_bar, p_pointer, p_lock
     if p_bar:
         p_bar.finish()
+    print()
 
 #############################################################################
 # JSON MANIPULATION

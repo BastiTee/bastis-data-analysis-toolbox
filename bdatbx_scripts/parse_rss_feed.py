@@ -34,7 +34,6 @@ for input_feed in input_feeds:
         out_file = open(target_file, 'w')
         out_file.write(b_util.object_to_json(entry))
         out_file.close()
-
     b_util.update_progressbar()
 
 b_util.finish_progressbar()
