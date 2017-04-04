@@ -9,6 +9,7 @@ networkx >= 1.11 # networkx # networkx
 # parsing
 feedparser >= 5.1 # feedparser # feedparser
 beautifulsoup4 >= 4.5.3 # bs4 # beautifulsoup4
+python-dateutil >= 2.4.2 # python-dateutil # python-dateutil
 
 # tools
 requests >= 2.12 # requests # requests

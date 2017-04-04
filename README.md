@@ -8,3 +8,5 @@ All of this is personal work and experiments in progress. No guarantee for inter
 Code is licensed under [GPLv3](https://github.com/BastiTee/bonnerblogs-analysis/blob/master/LICENSE)
 
 Contains snippets of <http://nirmalpatel.com/fcgi/hn.py> licences under [GPLv3](https://github.com/BastiTee/bonnerblogs-analysis/blob/master/LICENSE).
+
+Contains snippets of <https://github.com/Webhose/article-date-extractor> licences under [MIT](https://github.com/Webhose/article-date-extractor/blob/master/LICENSE).
