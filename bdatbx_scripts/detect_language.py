@@ -3,6 +3,7 @@
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 from bdatbx import b_cmdprs, b_const, b_util
+b_util.notify_start(__file__)
 prs = b_cmdprs.init(
     'Detect (or best-guess) the language of the given file\'s content')
 b_cmdprs.add_dir_in(prs)

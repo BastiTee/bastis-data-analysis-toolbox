@@ -1,36 +1,73 @@
 r"""Processing utilities."""
 
+#############################################################################
+# PRINTING OF RESULTSETS
+#############################################################################
+
 
 def print_result_statistics(results, label, print_counter=True,
                             counter_max=None,
                             print_resultset_stats=False, print_counter_stats=False):
-    log('{}\n\ttotal = {}\n\tunique = {}\n\tnone_values = {}'.format(
-        label,
-        results['resultset_len'],
-        results['resultset_unique'],
-        results['resultset_none_vals'],
-    ))
+
+    log('\n+++ {} +++'.format(label.upper()), color='green')
+    log('\nOVERVIEW')
+    t = [
+        ['total', results['resultset_len']],
+        ['unique', results['resultset_unique']],
+        ['none_vals', results['resultset_none_vals']],
+    ]
+    print_table(t)
+
     if print_counter:
-        log('\tcounter=')
+        log('\nCOUNTER')
+        t = []
         for tuple in results['counter'].most_common(counter_max):
-            log('\t\t{}\t= {}'.format(tuple[1], tuple[0]))
+            t.append([tuple[1], prepare_for_print(tuple[0])])
+        print_table(t)
     if print_resultset_stats:
-        log('\tstats_for_resultset=')
+        log('\nRESULTSET STATISTICS')
         for key, value in results['resultset_stats'].items():
-            log('\t\t{}\t= {}'.format(key, value))
+            t.append([key, value])
+        print_table(t)
     if print_counter_stats:
-        log('\tstats_for_counter=')
+        log('\nCOUNTER STATISTICS')
+        t = []
         for key, value in results['counter_stats'].items():
-            log('\t\t{}\t= {}'.format(key, value))
+            t.append([key, value])
+        print_table(t)
 
 
-def load_resource_file(basename):
+def print_table(table, headers=None, tabs=0):
+    from tabulate import tabulate
+    def_tablefmt = 'psql'
+    tabs = ''.join(['\t' for num in range(tabs)])
+    print()
+    if headers:
+        log(tabulate(table, headers=headers, tablefmt=def_tablefmt))
+    else:
+        log(tabulate(table, tablefmt=def_tablefmt))
+
+
+def prepare_for_print(string):
+    if string is None or len(str(string)) == 0:
+        return '-'
+    if not isinstance(string, str):
+        return string
+    from re import sub
+    return sub('[\'"]+$', '', sub('^[\'"]+', '', string))
+
+#############################################################################
+# I/O SUPPORT
+#############################################################################
+
+
+def get_resource_filepath(basename):
     from bptbx import b_iotools
     from os import path
     script_path = path.dirname(path.abspath(__file__))
     res_path = path.join(script_path, 'resource', basename)
-    if not b_iotools.file_exists(res_path):
-        log('Resource file \'{}\' not found.'.format(res_path), 1)
+    if not path.isdir(res_path) and not path.isfile(res_path):
+        log('Resource file \'{}\' not found.'.format(res_path))
     return res_path
 
 
@@ -57,38 +94,47 @@ def get_key_from_url(url):
     dir_key = file_key[:16]
     return file_key, dir_key
 
+#############################################################################
+# COMMAND-LINE LOGGING
+#############################################################################
 
-def logerr(message, stack_back=0, color='0;31', prefix=False):
-    log(message, stack_back, color, prefix, err=True)
+
+def get_color(color='white'):
+    from bdatbx.b_const import COLOR_CODES
+    try:
+        return COLOR_CODES[color]
+    except KeyError:
+        return COLOR_CODES['white']
 
 
-def log(message, stack_back=0, color='0;33', prefix=False, err=False):
+def log(message, color='yellow', err=False):
     if not message or message is None:
         return
-    # find out what module called the logging
-    mod = get_calling_module(stack_back + 1)
-    from re import sub
-    mod = sub('_+', ' ', sub('.py$', '', mod))
-    ccase = ''
-    if prefix:
-        for i in mod.upper().split():
-            ccase += i[0]
-        ccase = '[{}] '.format(ccase)
-    # print with given prefix and colors
+    color = get_color(color)
     if err:
         import sys
-        print('\x1b[{}m{}{}\x1b[0m'.format(color, ccase, message), file=sys.stderr)
+        print('\x1b[{}m{}\x1b[0m'.format(
+            color, message), file=sys.stderr)
     else:
-        print('\x1b[{}m{}{}\x1b[0m'.format(color, ccase, message))
+        print('\x1b[{}m{}\x1b[0m'.format(color, message))
 
 
-def get_calling_module(stack_back=0):
-    # find out what module called the logging
-    from inspect import stack, getmodule
-    mod = getmodule(stack()[1 + stack_back][0]).__file__
-    from os import path
-    mod = path.basename(mod)
-    return mod
+def logerr(message, color='red'):
+    log(message, color, err=True)
+
+
+def notify_start(script):
+    if script is None or len(script) == 0:
+        return
+    from bptbx.b_iotools import basename
+    from re import sub
+    script = basename(script, '.py')
+    script = sub('[_-]+', ' ', script).upper()
+    log('\n +++ {} +++\n'.format(script), 'green', err=False)
+
+#############################################################################
+# PROGRESSBAR HANDLING
+#############################################################################
 
 
 def setup_progressbar(item_count):
@@ -113,6 +159,10 @@ def finish_progressbar():
     global p_bar, p_pointer, p_lock
     if p_bar:
         p_bar.finish()
+
+#############################################################################
+# JSON MANIPULATION
+#############################################################################
 
 
 def object_to_json(obj):

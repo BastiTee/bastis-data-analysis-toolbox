@@ -3,81 +3,74 @@
 # Based on http://bdewilde.github.io/blog/2014/09/23/
 # intro-to-automatic-keyphrase-extraction/
 
-def get_stemmer_for_language(language):
-    return nltk.stem.snowball.SnowballStemmer(language, ignore_stopwords=False)
-
-def get_stopwords_for_language(language):
-    from bdatbx import b_util
-    from bptbx import b_iotools
-    import nltk
-    stop_words = nltk.corpus.stopwords.words(language)
-    path = b_util.load_resource_file('stopwords_{}_add.txt'.format(language))
-    new_stopwords = b_iotools.read_file_to_list(path)
-    b_util.log('Will add {} stopwords from {} to {} stopword list'.format(
-        len(new_stopwords), path, language))
-    stop_words = set(stop_words + new_stopwords)
-    return stop_words
-
-def get_stemmed_stopwords_for_language(language):
-    stop_words = get_stopwords_for_language(language)
-    stemmer = get_stemmer_for_language(language)
-    return set([stemmer.stem(stop_word) for stop_word in stop_words])
 
 def score_terms_by_textrank(text, language='german'):
-    import nltk, itertools, networkx, nltk, string, re
+    import itertools
+    import networkx
+    import string
+    import re
+    import operator
+    from bdatbx import b_preproc, b_util
 
-    stop_words = get_stemmed_stopwords_for_language(language)
-    stemmer = get_stemmer_for_language(language)
+    stop_words = b_preproc.get_stemmed_stopwords_for_language(language)
+    stemmer = b_preproc.get_stemmer_for_language(language)
+    tok_sen = b_preproc.get_token_sentences(text)
+    allowed_pos_tags = b_preproc.get_allowed_postags(language + "_stanford")
+    tok_sen_postag = b_preproc.postag_sentences_stanford(
+        tok_sen, language)
 
-    allowed_pos_tags=set(['FW', 'JJ','JJR','JJS','NN','NNP','NNS','NNPS'])
-    token_2_word_dict = {}
     all_tokens = []
-    all_token_sentences = []
+    candidate_tokens = []
+
+    token_2_word_dict = {}
     ngram_buffer = ["", "", ""]
     ngram_buffer_org = ["", "", ""]
     max_ngram_len = 3
     window_shift = 2
 
-    for sentence in nltk.sent_tokenize(text):
-        all_sentence_words = []
-        for token in nltk.tokenize.WordPunctTokenizer().tokenize(sentence):
-            regex = '[a-zA-ZäöüÄÖÜß0-9]+'  # at least one of those must appear
-            if not re.match(regex, token):
-                continue
-            original_token = token
-            token = stemmer.stem(token)
-            for idx in reversed(range(0, max_ngram_len-1)):
-                ngram_buffer[idx+1] = ngram_buffer[idx]
-                ngram_buffer_org[idx+1] = ngram_buffer_org[idx]
-            ngram_buffer[0] = token
-            ngram_buffer_org[0] = original_token
+    for token, pos_tag in list(tok_sen_postag):
+        regex = '[a-zA-ZäöüÄÖÜß0-9]+'  # at least one of those must appear
+        if not re.match(regex, token):
+            continue
+        original_token = token
+        token = stemmer.stem(token)
+        all_tokens.append(token)
+        if token in stop_words:
+            continue
+        if not pos_tag in allowed_pos_tags:
+            continue
+        #print('{} -- {} -- {}'.format(original_token, token, pos_tag))
+        candidate_tokens.append(token)
 
-            for idx in range(0, max_ngram_len-window_shift):
-                if window_shift > 0:
-                    window_shift -= 1
-                ngram = ' '.join(reversed(ngram_buffer[0:idx+1])).strip()
-                ngram_org = ' '.join(reversed(ngram_buffer_org[0:idx+1])).strip()
-                try:
-                    token_2_word_dict[ngram]
-                except KeyError:
-                    token_2_word_dict[ngram] = {}
-                try:
-                    token_2_word_dict[ngram][ngram_org] += 1
-                except KeyError:
-                    token_2_word_dict[ngram][ngram_org] = 1
-            all_sentence_words.append(token)
-            all_tokens.append(token)
-        all_token_sentences.append(all_sentence_words)
+        for idx in reversed(range(0, max_ngram_len - 1)):
+            ngram_buffer[idx + 1] = ngram_buffer[idx]
+            ngram_buffer_org[idx + 1] = ngram_buffer_org[idx]
+        ngram_buffer[0] = token
+        ngram_buffer_org[0] = original_token
 
-    tagged_tokens = itertools.chain.from_iterable(   nltk.pos_tag_sents(all_token_sentences))
+        for idx in range(0, max_ngram_len - window_shift):
+            if window_shift > 0:
+                window_shift -= 1
+            ngram = ' '.join(reversed(ngram_buffer[0:idx + 1])).strip()
+            ngram_org = ' '.join(
+                reversed(ngram_buffer_org[0:idx + 1])).strip()
+            try:
+                token_2_word_dict[ngram]
+            except KeyError:
+                token_2_word_dict[ngram] = {}
+            try:
+                token_2_word_dict[ngram][ngram_org] += 1
+            except KeyError:
+                token_2_word_dict[ngram][ngram_org] = 1
 
-    candidate_tokens = [word for word, tag in tagged_tokens
-                  if tag in allowed_pos_tags and word not in stop_words]
+    b_util.log('all-tokens:  {}'.format(len(all_tokens)))
+    b_util.log('cand-tokens: {}'.format(len(candidate_tokens)))
 
     # build graph, each node is a unique candidate
     graph = networkx.Graph()
     graph.add_nodes_from(set(candidate_tokens))
     # iterate over word-pairs, add unweighted edges into graph
+
     def pairwise(iterable):
         """s -> (s0,s1), (s1,s2), (s2, s3), ..."""
         a, b = itertools.tee(iterable)
@@ -86,7 +79,9 @@ def score_terms_by_textrank(text, language='german'):
     for w1, w2 in pairwise(candidate_tokens):
         if w2:
             graph.add_edge(*sorted([w1, w2]))
-    # score nodes using default pagerank algorithm, sort by score, keep top n_keywords
+
+    # score nodes using default pagerank algorithm, sort by score, keep top
+    # n_keywords
     n_keywords = 0.05
     ranks = networkx.pagerank(graph)
     if 0 < n_keywords < 1:
@@ -94,6 +89,7 @@ def score_terms_by_textrank(text, language='german'):
     word_ranks = {word_rank[0]: word_rank[1]
                   for word_rank in sorted(ranks.items(), key=lambda x: x[1], reverse=True)[:n_keywords]}
     keywords = set(word_ranks.keys())
+
     # merge keywords into keyphrases
     keyphrases = {}
     j = 0
@@ -101,15 +97,15 @@ def score_terms_by_textrank(text, language='german'):
         if i < j:
             continue
         if word in keywords:
-            kp_words = list(itertools.takewhile(lambda x: x in keywords, all_tokens[i:i+10]))
-            avg_pagerank = sum(word_ranks[w] for w in kp_words) / float(len(kp_words))
+            kp_words = list(itertools.takewhile(
+                lambda x: x in keywords, all_tokens[i:i + 10]))
+            avg_pagerank = sum(word_ranks[w]
+                               for w in kp_words) / float(len(kp_words))
             keyphrases[' '.join(kp_words)] = avg_pagerank
             j = i + len(kp_words)
 
-
     keyphrases_original = {}
     for keyphrase in keyphrases:
-        import operator
         new_keyphrase = []
 
         try:
@@ -139,8 +135,9 @@ if __name__ == '__main__':
 
     nltk.data.path.append('nltk-data')
 
-    url = argv[1]
-    if not url:
+    try:
+        url = argv[1]
+    except IndexError:
         print('No URL given.')
         exit(1)
 
@@ -155,9 +152,9 @@ if __name__ == '__main__':
     in_text = b_parse.extract_main_text_content(in_html)
 
     terms = score_terms_by_textrank(in_text)
-    i = 0
+    # i = 0
     for term, rank in terms:
         print('{}\t{}'.format(rank, term))
-        i += 1
-        if i == 15:
-            break
+        # i += 1
+        # if i == 15:
+        #     break

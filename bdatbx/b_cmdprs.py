@@ -76,9 +76,7 @@ def check_dir_out_and_chdir(prs, args):
         show_help(prs, 'Output directory does not exist.')
     args.o = path.abspath(args.o)
     chdir(args.o)
-    b_util.log('STARTED {}'.format(b_util.get_calling_module(1)), 1, '0;32',
-               prefix=True)
-    b_util.log('Working directory {}'.format(getcwd()), 1, prefix=True)
+    # b_util.log('Working directory {}'.format(getcwd()))
 
 
 # AUXILIARY- ------------------------------------------------------------------
@@ -125,7 +123,7 @@ def check_mongo_collection(prs, args, required=False):
     from bdatbx import b_mongo
     col = b_mongo.get_client_for_collection(args.c, create=False)
     if not col:
-        show_help(prs, 'Given MongoDB collection does not exist.' )
+        show_help(prs, 'Given MongoDB collection does not exist.')
     return col
 
 

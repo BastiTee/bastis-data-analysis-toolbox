@@ -3,7 +3,8 @@
 from __future__ import with_statement
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
-from bdatbx import b_cmdprs
+from bdatbx import b_cmdprs, b_util
+b_util.notify_start(__file__)
 prs = b_cmdprs.init(
     'Dump website content of given feedparse run / linklist to text files. ' +
     'WARN: Options -i, -l, -c are mutual exclusive with ' +
@@ -25,14 +26,13 @@ b_cmdprs.check_max_threads(prs, args)
 # -----------------------------------------------------------------------------
 
 from bptbx import b_iotools, b_threading
-from bdatbx import b_util, b_const, b_parse, b_mongo
+from bdatbx import b_const, b_parse, b_mongo
 from os import path
 from re import search
 import time
 import requests
 from requests import exceptions
 import feedparser
-
 
 def worker(url, col=None, doc=None):
     file_key, dir_key = b_util.get_key_from_url(url)

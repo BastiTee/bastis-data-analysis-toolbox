@@ -54,12 +54,12 @@ stdoutlog "configuring nltk"
 }
 
 bptbx_dir="${script_dir}/../_bptbx_install"
-[ ! -d $bptbx_dir ] && {
+bptbx_linktarget="$( readlink -f ${script_dir}/../ )/bptbx"
+[ ! -L ${bptbx_linktarget} ] || [ ! -e ${bptbx_linktarget} ] && {
   git clone https://github.com/BastiTee/bastis-python-toolbox.git $bptbx_dir
   cd $bptbx_dir
   sudo -H $PY -m pip install -r requirements.txt
   cd ..
-  bptbx_linktarget="$( readlink -f ${script_dir}/../ )/bptbx"
   ln -s ${bptbx_dir}/bptbx $bptbx_linktarget
 }
 

@@ -21,3 +21,13 @@ DB_TOK_WC = '__tok_tokencount'
 DB_TOK_TOKENS = '__tok_tokens'
 DB_TOK_RAWFILE = '__tok_rawfilepath'
 DB_TOK_RAWFILESIZE = '__tok_rawfilesize'
+
+COLOR_CODES = {
+    'red': '31',
+    'green': '32',
+    'yellow': '33',
+    'blue': '34',
+    'magenta': '35',
+    'cyan': '36',
+    'white': '37',
+}

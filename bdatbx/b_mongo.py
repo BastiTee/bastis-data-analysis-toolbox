@@ -5,7 +5,7 @@ from pymongo.errors import ConnectionFailure, DuplicateKeyError
 
 
 def consolidate_mongo_key(col, key, if_filter=lambda x: True,
-    process_value=lambda x: x):
+                          process_value=lambda x: x):
     from re import sub
     from collections import Counter
     from bdatbx import b_stats
@@ -32,10 +32,12 @@ def consolidate_mongo_key(col, key, if_filter=lambda x: True,
     }
     return results
 
+
 def set_null_safe(doc, key, value):
     if doc is None or key is None:
         return
     doc[key] = value
+
 
 def get_key_nullsafe(doc, key):
     if not doc or not key:
@@ -61,17 +63,19 @@ def get_snapshot_cursor(col, no_cursor_timeout=False):
     if col is None:
         return  # Bypass database on missing connectivity
     return col.find({}, modifiers={"$snapshot": True},
-        no_cursor_timeout=no_cursor_timeout)
+                    no_cursor_timeout=no_cursor_timeout)
+
 
 def find_docs(col, query, no_cursor_timeout=False, limit=None):
     if col is None:
         return  # Bypass database on missing connectivity
     if limit:
         return col.find(query, modifiers={"$snapshot": True},
-            no_cursor_timeout=no_cursor_timeout)
+                        no_cursor_timeout=no_cursor_timeout)
     else:
         return col.find(query, modifiers={"$snapshot": True},
-            no_cursor_timeout=no_cursor_timeout)
+                        no_cursor_timeout=no_cursor_timeout)
+
 
 def get_doc_or_none(col, key, value):
     if col is None:

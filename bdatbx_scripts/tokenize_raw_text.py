@@ -3,7 +3,8 @@
 from __future__ import with_statement
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
-from bdatbx import b_cmdprs
+from bdatbx import b_cmdprs, b_util
+b_util.notify_start(__file__)
 prs = b_cmdprs.init('Tokenize raw text files')
 b_cmdprs.add_dir_in(prs)
 b_cmdprs.add_dir_out(prs)
@@ -22,7 +23,7 @@ col = b_cmdprs.check_mongo_collection(prs, args)
 import os
 import nltk
 from bptbx import b_iotools, b_threading
-from bdatbx import b_lists, b_util, b_mongo, b_const
+from bdatbx import b_lists, b_mongo, b_const
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 
@@ -112,7 +113,7 @@ def write_dictionary_to_file(dictionary, stopwords, filename):
 
 
 def extend_stopwords_with_manual_list(stopwords, lang):
-    path = b_util.load_resource_file('stopwords_{}_add.txt'.format(lang))
+    path = b_util.get_resource_filepath('stopwords_{}_add.txt'.format(lang))
     new_stopwords = b_iotools.read_file_to_list(path)
     b_util.log('Will add {} stopwords from {} to {} stopword list'.format(
         len(new_stopwords), path, lang))

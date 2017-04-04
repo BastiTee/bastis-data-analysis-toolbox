@@ -3,7 +3,8 @@
 from __future__ import with_statement
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
-from bdatbx import b_cmdprs
+from bdatbx import b_cmdprs, b_util
+b_util.notify_start(__file__)
 prs = b_cmdprs.init('Extract main textual content from HTML to text files.')
 b_cmdprs.add_dir_in(prs)
 b_cmdprs.add_mongo_collection(prs)
@@ -18,7 +19,7 @@ col = b_cmdprs.check_mongo_collection(prs, args)
 # -----------------------------------------------------------------------------
 
 from bptbx import b_iotools, b_threading
-from bdatbx import b_util, b_parse, b_const, b_mongo
+from bdatbx import b_parse, b_const, b_mongo
 from collections import Counter
 from re import findall
 import os

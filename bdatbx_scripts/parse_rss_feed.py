@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
-from bdatbx import b_cmdprs
+from bdatbx import b_cmdprs, b_util
+b_util.notify_start(__file__)
 prs = b_cmdprs.init('Parse RSS feed URLs from file and store raw metadata')
 b_cmdprs.add_file_in(prs)
 b_cmdprs.add_dir_out(prs)
@@ -15,7 +16,6 @@ b_cmdprs.check_dir_out_and_chdir(prs, args)
 
 import feedparser
 from bptbx.b_iotools import read_file_to_list, mkdirs
-from bdatbx import b_util
 from bdatbx.b_const import GLOBAL_INFILE_SUFFIX
 from os import path
 
