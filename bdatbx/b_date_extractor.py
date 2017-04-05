@@ -3,7 +3,8 @@
 """Utility module to extract the publish date of a webpage.
 
 This module is based on https://github.com/Webhose/article-date-extractor
-licensed under MIT.
+licensed under MIT and has been extended to support Python 3, a more
+sophisticated date-parser and more corner cases.
 
 The MIT License (MIT)
 
@@ -224,13 +225,14 @@ def _extract_from_html_tag(parsed_html):
     # "pubdate|timestamp|post-date|date-header|" +
     #     "article_date|articledate|date"
     pattern = (
-        'pubdate|published|timestamp|post-date|date-header|article_date|' +
+        'blogheader|pubdate|published|timestamp|post-date|date-header|article_date|' +
         'articledate|date|theTime')
     # pattern = ('date-header')
     for tag in parsed_html.find_all(
         ['abbr', 'span', 'p', 'div', 'h1', 'h2', 'h3', 'li'],
             class_=re.compile(pattern, re.IGNORECASE)):
         date_text = tag.string
+        # print(date_text)
         if date_text is None:
             date_text = tag.text
 

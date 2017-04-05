@@ -1,58 +1,64 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Go through each document of a MongoDB collection and manipulate doc.
+"""Extracts the raw main text content from an HTML page."""
 
-python3 -m bdatbx_scripts.extract_pubdate_from_html.py
-bonndigital_2016-11-06.sanity
+from __future__ import with_statement
+from bptbx import b_iotools, b_threading
+from bdatbx import b_const, b_mongo, b_cmdprs, b_util, b_date_extractor
+import os
 
-python3 -m bdatbx.b_date_extractor "<url>"
-"""
+# ------------------------------------------------------------ CMD-LINE-PARSING
+b_util.notify_start(__file__)
+prs = b_cmdprs.init('Extract main textual content from HTML to text files.')
+b_cmdprs.add_dir_in(prs)
+b_cmdprs.add_mongo_collection(prs)
+b_cmdprs.add_max_threads(prs)
+b_cmdprs.add_bool(prs, '-f', 'Only print out URLs with no date extracted.')
+args = prs.parse_args()
+b_cmdprs.check_dir_in(prs, args)
+b_cmdprs.check_max_threads(prs, args)
+col = b_cmdprs.check_mongo_collection(prs, args)
+# -----------------------------------------------------------------------------
 
-from sys import argv
-from bdatbx import b_mongo, b_const, b_date_extractor
-from bptbx import b_iotools
 
-try:
-    collection_name = argv[1]
-except IndexError:
-    print("No collection name given.")
-    exit(1)
+def _worker(in_file, col=None, doc=None):
+    try:
+        raw_html = '\n'.join(b_iotools.read_file_to_list(in_file))
+        url = b_mongo.get_key_nullsafe(doc, b_const.DB_SOURCE_URI)
+        if not url:
+            url = ''
+            print(url)
+        date, hint = b_date_extractor.extract_article_pubdate(url, raw_html)
 
-col = b_mongo.get_client_for_collection(collection_name, create=False)
-if col is None:
-    print('Collection not available.')
-    exit(1)
-
-size = b_mongo.get_collection_size(col)
-modu = int(size / 100)
-print('Given collection has {} elements (mod={})'.format(size, modu))
-
-cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
-i = 0
-for doc in cursor:
-    if (i % modu) == 0:
-        # print('{}/{} ({}%)...'.format(i, size, (int((i / size) * 100))))
+        if args.f and not hint:
+            print(url)
+        elif not args.f:
+            print('{} | {} | {}'.format(
+                str(hint).ljust(8), str(date).ljust(25), url[:80]))
+    finally:
         pass
-    i += 1
+        # b_mongo.replace_doc(col, doc)
+        # b_util.update_progressbar()
 
-    raw_html = b_mongo.get_key_nullsafe(doc, b_const.DB_DL_RAWFILE)
-    url = b_mongo.get_key_nullsafe(doc, b_const.DB_SOURCE_URI)
 
-    if not raw_html or not url:
-        continue
+pool = b_threading.ThreadPool(args.t)
+if args.i and not col:
+    in_files = b_util.read_valid_inputfiles(args.i)
+    # b_util.setup_progressbar(len(in_files))
+    for in_file in in_files:
+        pool.add_task(_worker, in_file)
+else:
+    b_util.setup_progressbar(b_mongo.get_collection_size(col))
+    cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
+    for doc in cursor:
+        html_file = b_mongo.get_key_nullsafe(doc, b_const.DB_DL_RAWFILE)
+        if html_file:
+            in_file = os.path.join(args.i, html_file)
+            pool.add_task(_worker, in_file, col, doc)
+    cursor.close()
 
-    raw_file = ('/data/github/bonnerblogs-analysis/' +
-                '_bonndigital_2016-11-06.sanity-raw-html/' + raw_html)
-    raw_html = '\n'.join(b_iotools.read_file_to_list(raw_file))
-
-    date, hint = b_date_extractor.extract_article_pubdate(url, raw_html)
-    if not hint:
-        hint = '??'
-    if not date:
-        date = '??'
-    print('{} | {} | {}'.format(hint.ljust(8), str(date).ljust(25), url[:80]))
-
-cursor.close()
+pool.wait_completion()
+# b_util.finish_progressbar()
 
 
 def main():
