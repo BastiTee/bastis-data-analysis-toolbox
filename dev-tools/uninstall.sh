@@ -13,7 +13,7 @@ awk '{print $7}' | while read lib
 do
   $PY -m pip uninstall -y $lib
 done
-$PY -m pip uninstall -y bdatbx
+$PY -m pip uninstall -y robota
 
 stdoutlog "Cleaning local workspace..."
 rm -vrf _* nltk-data

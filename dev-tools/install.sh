@@ -55,6 +55,7 @@ stdoutlog "configuring nltk"
 
 bptbx_dir="${script_dir}/../_bptbx_install"
 bptbx_linktarget="$( readlink -f ${script_dir}/../ )/bptbx"
+stdoutlog "installing link to $bptbx_linktarget"
 [ ! -L ${bptbx_linktarget} ] || [ ! -e ${bptbx_linktarget} ] && {
   git clone https://github.com/BastiTee/bastis-python-toolbox.git $bptbx_dir
   cd $bptbx_dir
@@ -64,6 +65,6 @@ bptbx_linktarget="$( readlink -f ${script_dir}/../ )/bptbx"
 }
 
 cd ${script_dir}/..
-$PY -m bdatbx_test.test_suite
+$PY -m robota_test.test_suite
 
 echo

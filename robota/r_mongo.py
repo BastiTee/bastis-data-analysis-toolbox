@@ -9,7 +9,7 @@ def consolidate_mongo_key(col, key, if_filter=lambda x: True,
     """Read a specific key from DB for all docs and create statistics."""
     from re import sub
     from collections import Counter
-    from bdatbx import b_stats
+    from robota import r_stats
     cur = col.find({}, {key: 1, '_id': 0})
     resultset = [
         process_value(get_key_nullsafe(doc, key))
@@ -20,8 +20,8 @@ def consolidate_mongo_key(col, key, if_filter=lambda x: True,
             resultset = [sub(']$', '', sub('^\[', '', str(result)))
                          for result in resultset]
     counter = Counter(resultset)
-    resultset_stats = b_stats.gather_basic_numerical_stats(resultset)
-    counter_stats = b_stats.gather_basic_numerical_stats(
+    resultset_stats = r_stats.gather_basic_numerical_stats(resultset)
+    counter_stats = r_stats.gather_basic_numerical_stats(
         list(counter.values()))
     results = {
         'resultset': resultset,
@@ -155,16 +155,16 @@ def change_id(col, doc, new_id):
 
 def get_client_for_collection(col_name, create=True):
     """Return a client for the given collection. Create it if wanted."""
-    from bdatbx import b_util
+    from robota import r_util
     client = MongoClient()
     try:
         client.admin.command('ismaster')
     except ConnectionFailure:
-        b_util.logerr('Mongodb server not available!')
+        r_util.logerr('Mongodb server not available!')
         return None
-    db = client.bdatbx
+    db = client.robota
     if col_name not in db.collection_names() and not create:
-        b_util.logerr('Collection not present and create-option is disabled.')
+        r_util.logerr('Collection not present and create-option is disabled.')
         return None
     col = db[col_name]
     return col

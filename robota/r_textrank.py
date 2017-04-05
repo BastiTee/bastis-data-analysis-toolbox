@@ -13,13 +13,13 @@ def score_terms_by_textrank(text, language='german'):
     import networkx
     import re
     import operator
-    from bdatbx import b_preproc, b_util
+    from robota import r_preproc, r_util
 
-    stop_words = b_preproc.get_stemmed_stopwords_for_language(language)
-    stemmer = b_preproc.get_stemmer_for_language(language)
-    tok_sen = b_preproc.get_token_sentences(text)
-    allowed_pos_tags = b_preproc.get_allowed_postags(language + "_stanford")
-    tok_sen_postag = b_preproc.postag_sentences_stanford(
+    stop_words = r_preproc.get_stemmed_stopwords_for_language(language)
+    stemmer = r_preproc.get_stemmer_for_language(language)
+    tok_sen = r_preproc.get_token_sentences(text)
+    allowed_pos_tags = r_preproc.get_allowed_postags(language + "_stanford")
+    tok_sen_postag = r_preproc.postag_sentences_stanford(
         tok_sen, language)
 
     all_tokens = []
@@ -65,8 +65,8 @@ def score_terms_by_textrank(text, language='german'):
             except KeyError:
                 token_2_word_dict[ngram][ngram_org] = 1
 
-    b_util.log('all-tokens:  {}'.format(len(all_tokens)))
-    b_util.log('cand-tokens: {}'.format(len(candidate_tokens)))
+    r_util.log('all-tokens:  {}'.format(len(all_tokens)))
+    r_util.log('cand-tokens: {}'.format(len(candidate_tokens)))
 
     # build graph, each node is a unique candidate
     graph = networkx.Graph()
@@ -136,7 +136,7 @@ def _pairwise(iterable):
 
 if __name__ == '__main__':
     import nltk
-    from bdatbx import b_parse
+    from robota import r_parse
     from requests import get
     from sys import argv, exit
 
@@ -156,7 +156,7 @@ if __name__ == '__main__':
         print('Could not download \'{}\' with error: {}'.format(url, e))
         exit(1)
 
-    in_text = b_parse.extract_main_text_content(in_html)
+    in_text = r_parse.extract_main_text_content(in_html)
 
     terms = score_terms_by_textrank(in_text)
     # i = 0

@@ -7,25 +7,25 @@ from __future__ import with_statement
 import os
 import nltk
 from bptbx import b_iotools, b_threading
-from bdatbx import b_lists, b_mongo, b_const, b_cmdprs, b_util
+from robota import r_lists, r_mongo, r_const, r_cmdprs, r_util
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
-b_util.notify_start(__file__)
-prs = b_cmdprs.init('Tokenize raw text files')
-b_cmdprs.add_dir_in(prs)
-b_cmdprs.add_dir_out(prs)
-b_cmdprs.add_mongo_collection(prs)
-b_cmdprs.add_opt_dir_in(prs, '-n', 'Additional NLTK data directory')
-b_cmdprs.add_max_threads(prs)
-b_cmdprs.add_verbose(prs)
+r_util.notify_start(__file__)
+prs = r_cmdprs.init('Tokenize raw text files')
+r_cmdprs.add_dir_in(prs)
+r_cmdprs.add_dir_out(prs)
+r_cmdprs.add_mongo_collection(prs)
+r_cmdprs.add_opt_dir_in(prs, '-n', 'Additional NLTK data directory')
+r_cmdprs.add_max_threads(prs)
+r_cmdprs.add_verbose(prs)
 args = prs.parse_args()
-b_cmdprs.check_dir_in(prs, args)
-args.n = b_cmdprs.check_opt_dir_in(prs, args.n)
-b_cmdprs.check_dir_out_and_chdir(prs, args)
-b_cmdprs.check_max_threads(prs, args)
-col = b_cmdprs.check_mongo_collection(prs, args)
+r_cmdprs.check_dir_in(prs, args)
+args.n = r_cmdprs.check_opt_dir_in(prs, args.n)
+r_cmdprs.check_dir_out_and_chdir(prs, args)
+r_cmdprs.check_max_threads(prs, args)
+col = r_cmdprs.check_mongo_collection(prs, args)
 # -----------------------------------------------------------------------------
 
 
@@ -48,11 +48,11 @@ def _remove_nonwords(tokens):
 
 def _detect_language(tokens, doc=None):
     # check if we detected language before
-    lang_db = b_mongo.get_key_nullsafe(doc, b_const.DB_LANG_AUTO)
+    lang_db = r_mongo.get_key_nullsafe(doc, r_const.DB_LANG_AUTO)
     # if not try to decide between german and english
     if not lang_db:
-        if (len(b_lists.intersect(tokens, SUPPORTED_LANGS['en']['sw'])) > len(
-                b_lists.intersect(tokens, SUPPORTED_LANGS['de']['sw']))):
+        if (len(r_lists.intersect(tokens, SUPPORTED_LANGS['en']['sw'])) > len(
+                r_lists.intersect(tokens, SUPPORTED_LANGS['de']['sw']))):
             lang_db = 'en'
         else:
             lang_db = 'de'
@@ -118,9 +118,9 @@ def _write_dictionary_to_file(dictionary, stopwords, filename):
 
 
 def _extend_stopwords_with_manual_list(stopwords, lang):
-    path = b_util.get_resource_filepath('stopwords_{}_add.txt'.format(lang))
+    path = r_util.get_resource_filepath('stopwords_{}_add.txt'.format(lang))
     new_stopwords = b_iotools.read_file_to_list(path)
-    b_util.log('Will add {} stopwords from {} to {} stopword list'.format(
+    r_util.log('Will add {} stopwords from {} to {} stopword list'.format(
         len(new_stopwords), path, lang))
     stopwords += new_stopwords
     return stopwords
@@ -130,7 +130,7 @@ def _worker(in_file, col=None, doc=None):
     try:
         # when using mongo, check if word count is relevant
         if doc is not None:
-            wc = b_mongo.get_key_nullsafe(doc, b_const.DB_TE_WC)
+            wc = r_mongo.get_key_nullsafe(doc, r_const.DB_TE_WC)
             if wc is None or wc < 1:
                 return
         # check if input file is present
@@ -150,24 +150,24 @@ def _worker(in_file, col=None, doc=None):
         lang_kit = _detect_language(tokens, doc)
         tokens = _stem(tokens, lang_kit['stemmer'], lang_kit['s2s'])
         tokens = _stopword_removal(tokens, lang_kit['sw'])
-        b_mongo.set_null_safe(doc, b_const.DB_TOK_WC, len(tokens))
-        b_mongo.set_null_safe(doc, b_const.DB_TOK_TOKENS, tokens)
+        r_mongo.set_null_safe(doc, r_const.DB_TOK_WC, len(tokens))
+        r_mongo.set_null_safe(doc, r_const.DB_TOK_TOKENS, tokens)
         # ------------------------------------------------
         b_iotools.write_list_to_file(tokens, raw_fname)
         if b_iotools.file_exists(raw_fname):
-            b_mongo.set_null_safe(doc, b_const.DB_TOK_RAWFILE, raw_fname)
-            b_mongo.set_null_safe(doc, b_const.DB_TOK_RAWFILESIZE,
+            r_mongo.set_null_safe(doc, r_const.DB_TOK_RAWFILE, raw_fname)
+            r_mongo.set_null_safe(doc, r_const.DB_TOK_RAWFILESIZE,
                                   b_iotools.get_file_size(raw_fname))
         # ------------------------------------------------
     finally:
-        b_mongo.replace_doc(col, doc)
-        b_util.update_progressbar()
+        r_mongo.replace_doc(col, doc)
+        r_util.update_progressbar()
 
 
 # setup language tools
 if args.n:
     nltk.data.path.append(args.n)
-    b_util.log('added nltk path {}'.format(args.n))
+    r_util.log('added nltk path {}'.format(args.n))
 
 SUPPORTED_LANGS = {
     'de': {'name': 'german'},
@@ -185,28 +185,28 @@ for iso, lang_kit in SUPPORTED_LANGS.items():
          for sw in _extend_stopwords_with_manual_list(
             stopwords.words(lang), lang)])
     lang_kit['s2s'] = {}
-    b_util.log('-- finished setup for language {}/{}'.format(iso, lang))
+    r_util.log('-- finished setup for language {}/{}'.format(iso, lang))
 SUPPORTED_LANGS['unk']['stemmer'] = SUPPORTED_LANGS['en']['stemmer']
 SUPPORTED_LANGS['unk']['sw'] = SUPPORTED_LANGS['en']['sw']
 SUPPORTED_LANGS['unk']['s2s'] = {}
 
 pool = b_threading.ThreadPool(args.t)
 if args.i and not col:
-    in_files = b_util.read_valid_inputfiles(args.i)
-    b_util.setup_progressbar(len(in_files))
+    in_files = r_util.read_valid_inputfiles(args.i)
+    r_util.setup_progressbar(len(in_files))
     for in_file in in_files:
         _worker(in_file)
 elif col:
-    b_util.setup_progressbar(b_mongo.get_collection_size(col))
-    cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
+    r_util.setup_progressbar(r_mongo.get_collection_size(col))
+    cursor = r_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
     for doc in cursor:
-        raw_text = b_mongo.get_key_nullsafe(doc, b_const.DB_TE_RAWFILE)
+        raw_text = r_mongo.get_key_nullsafe(doc, r_const.DB_TE_RAWFILE)
         if raw_text:
             in_file = os.path.join(args.i, raw_text)
             pool.add_task(_worker, in_file, col, doc)
     cursor.close()
 pool.wait_completion()
-b_util.finish_progressbar()
+r_util.finish_progressbar()
 
 # write out data points
 for kit in list(SUPPORTED_LANGS.values()):

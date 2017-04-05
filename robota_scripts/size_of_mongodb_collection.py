@@ -3,7 +3,7 @@
 """Returns the size of the given MongoDB collection or 0 if not present."""
 
 from sys import argv
-from bdatbx import b_mongo
+from robota import r_mongo
 
 try:
     collection_name = argv[1]
@@ -11,11 +11,11 @@ except IndexError:
     print("No collection name given.")
     exit(1)
 
-col = b_mongo.get_client_for_collection(collection_name, create=False)
+col = r_mongo.get_client_for_collection(collection_name, create=False)
 if col is None:
     print('0')
     exit(1)
-size = b_mongo.get_collection_size(col)
+size = r_mongo.get_collection_size(col)
 print(size)
 
 

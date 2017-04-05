@@ -29,14 +29,14 @@ def get_allowed_postags(language):
 
 def get_stopwords_for_language(language):
     """Return a set of stopwords for the given language."""
-    from bdatbx import b_util
+    from robota import r_util
     from bptbx import b_iotools
     import nltk
     stop_words = nltk.corpus.stopwords.words(language)
-    path = b_util.get_resource_filepath(
+    path = r_util.get_resource_filepath(
         'stopwords_{}_add.txt'.format(language))
     new_stopwords = b_iotools.read_file_to_list(path)
-    b_util.log('Will add {} stopwords from {} to {} stopword list'.format(
+    r_util.log('Will add {} stopwords from {} to {} stopword list'.format(
         len(new_stopwords), path, language))
     stop_words = set(stop_words + new_stopwords)
     return stop_words
@@ -76,8 +76,8 @@ def postag_sentences_stanford(tok_sen, language, sanity_print=False):
     import itertools
     import nltk
     import os
-    from bdatbx import b_util
-    pos_tagger_path = b_util.get_resource_filepath('stanford-postagger')
+    from robota import r_util
+    pos_tagger_path = r_util.get_resource_filepath('stanford-postagger')
     pos_tagger = nltk.tag.stanford.StanfordPOSTagger(
         os.path.join(pos_tagger_path, 'models', 'german-fast.tagger'),
         path_to_jar=os.path.join(
@@ -90,10 +90,10 @@ def postag_sentences_stanford(tok_sen, language, sanity_print=False):
 
 
 def _print_postag_table(tagged_tokens, print=False):
-    from bdatbx import b_util
+    from robota import r_util
     if not print:
         return
     t = []
     for key, val in list(tagged_tokens)[:100]:
         t.append([key, val])
-    b_util.print_table(t, headers=['Token', 'POS-TAG'])
+    r_util.print_table(t, headers=['Token', 'POS-TAG'])

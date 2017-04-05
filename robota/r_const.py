@@ -1,6 +1,6 @@
 """Package-wide constants."""
 
-GLOBAL_INFILE_SUFFIX = 'bdatbx'
+GLOBAL_INFILE_SUFFIX = 'robota'
 DEFAULT_CONTENT_LANG = 'de'
 
 DB_SOURCE_URI = '__src_uri'

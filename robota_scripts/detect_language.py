@@ -6,60 +6,60 @@ import langdetect
 from bptbx import b_threading, b_iotools
 from os import path
 from re import findall
-from bdatbx import b_cmdprs, b_const, b_util, b_mongo
+from robota import r_cmdprs, r_const, r_util, r_mongo
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
-b_util.notify_start(__file__)
-prs = b_cmdprs.init(
+r_util.notify_start(__file__)
+prs = r_cmdprs.init(
     'Detect (or best-guess) the language of the given file\'s content')
-b_cmdprs.add_dir_in(prs)
-b_cmdprs.add_mongo_collection(prs)
-b_cmdprs.add_file_out(prs)
+r_cmdprs.add_dir_in(prs)
+r_cmdprs.add_mongo_collection(prs)
+r_cmdprs.add_file_out(prs)
 args = prs.parse_args()
-b_cmdprs.check_dir_in(prs, args)
-b_cmdprs.check_file_out(prs, args)
-col = b_cmdprs.check_mongo_collection(prs, args)
+r_cmdprs.check_dir_in(prs, args)
+r_cmdprs.check_file_out(prs, args)
+col = r_cmdprs.check_mongo_collection(prs, args)
 # -----------------------------------------------------------------------------
 
 
 def _worker(filepath, col=None, doc=None):
     try:
-        b_mongo.set_null_safe(doc, b_const.DB_LANG_AUTO, None)
-        file_key, dir_key = b_util.get_key_from_url(filepath)
+        r_mongo.set_null_safe(doc, r_const.DB_LANG_AUTO, None)
+        file_key, dir_key = r_util.get_key_from_url(filepath)
         raw_fname = path.join(dir_key, file_key + '.' +
-                              b_const.GLOBAL_INFILE_SUFFIX)
+                              r_const.GLOBAL_INFILE_SUFFIX)
         in_text = ' '.join(b_iotools.read_file_to_list(filepath))
         words = len(findall(r'[^\w]+', in_text))
         if words < 10:
             return
         lang = langdetect.detect(in_text)
         if lang:
-            b_mongo.set_null_safe(doc, b_const.DB_LANG_AUTO, lang)
+            r_mongo.set_null_safe(doc, r_const.DB_LANG_AUTO, lang)
         f_handle.write('{} {}\n'.format(lang, raw_fname))
     finally:
-        b_mongo.replace_doc(col, doc)
-        b_util.update_progressbar()
+        r_mongo.replace_doc(col, doc)
+        r_util.update_progressbar()
 
 
 f_handle = open(args.o, 'w')
 pool = b_threading.ThreadPool(1)
 if args.i and not col:
-    in_files = b_util.read_valid_inputfiles(args.i)
-    b_util.setup_progressbar(len(in_files))
+    in_files = r_util.read_valid_inputfiles(args.i)
+    r_util.setup_progressbar(len(in_files))
     for in_file in in_files:
         pool.add_task(_worker, in_file)
 else:
-    b_util.setup_progressbar(b_mongo.get_collection_size(col))
-    cursor = b_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
+    r_util.setup_progressbar(r_mongo.get_collection_size(col))
+    cursor = r_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
     for doc in cursor:
-        html_file = b_mongo.get_key_nullsafe(doc, b_const.DB_TE_RAWFILE)
+        html_file = r_mongo.get_key_nullsafe(doc, r_const.DB_TE_RAWFILE)
         if html_file:
             in_file = path.join(args.i, html_file)
             pool.add_task(_worker, in_file, col, doc)
     cursor.close()
 
 pool.wait_completion()
-b_util.finish_progressbar()
+r_util.finish_progressbar()
 f_handle.close()
 
 

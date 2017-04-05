@@ -7,7 +7,7 @@ from re import sub
 
 chdir(path.dirname(path.abspath(__file__)))
 
-script_folder = 'bdatbx_scripts'
+script_folder = 'robota_scripts'
 scripts = []
 for fname in listdir(script_folder):
     fabs = path.abspath(path.join(script_folder, fname))
@@ -18,20 +18,19 @@ for fname in listdir(script_folder):
     ):
         script_n = sub('\.py$', '', fname)
         script_bin = sub('_', '-', script_n)
-        scripts.append('bdatbx-{} = {}.{}:main'.format(
+        scripts.append('robota-{} = {}.{}:main'.format(
             script_bin, script_folder, script_n))
 
 setup(
-    name='bdatbx',
+    name='robota',
     version='0.1.0',
-    description='''Basti\'s Data Analysis Toolbox.''',
-    long_description='''Mostly python-based library and scripts
-    to analyse data.''',
+    description='''Yet another Python data analysis tool belt.''',
+    long_description='''Yet another Python data analysis tool belt.''',
     author='Basti Tee',
     author_email='basti.tee@gmx.de',
     url='tbd',
-    packages=['bdatbx', 'bdatbx_scripts'],
-    package_data={'bdatbx': ['resource/*']},
+    packages=['robota', 'robota_scripts'],
+    package_data={'robota': ['resource/*']},
     install_requires=[],
     entry_points={
         'console_scripts': scripts,

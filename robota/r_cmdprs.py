@@ -85,7 +85,7 @@ def check_dir_out_and_chdir(prs, args):
         show_help(prs, 'Output directory does not exist.')
     args.o = path.abspath(args.o)
     chdir(args.o)
-    # b_util.log('Working directory {}'.format(getcwd()))
+    # r_util.log('Working directory {}'.format(getcwd()))
 
 
 # AUXILIARY- ------------------------------------------------------------------
@@ -136,8 +136,8 @@ def check_mongo_collection(prs, args, required=False):
         show_help(prs, 'MongoDB collection required but not set.')
     elif not args.c:
         return
-    from bdatbx import b_mongo
-    col = b_mongo.get_client_for_collection(args.c, create=False)
+    from robota import r_mongo
+    col = r_mongo.get_client_for_collection(args.c, create=False)
     if not col:
         show_help(prs, 'Given MongoDB collection does not exist.')
     return col

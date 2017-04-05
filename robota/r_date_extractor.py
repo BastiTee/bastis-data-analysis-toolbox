@@ -33,7 +33,7 @@ import re
 import json
 from dateparser import parse
 from bs4 import BeautifulSoup
-from bdatbx import b_util
+from robota import r_util
 
 
 def _parse_str_date(date_string):
@@ -272,7 +272,7 @@ def extract_article_pubdate(article_link, html):
         article_date = url_date
 
     except Exception as e:
-        b_util.logerr(e)
+        r_util.logerr(e)
 
     return article_date, date_hint
 

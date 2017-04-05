@@ -74,7 +74,7 @@ def get_resource_filepath(basename):
 
 def read_valid_inputfiles(input_dir):
     """Read input file path from a folder determined by system-wide filter."""
-    from bdatbx.b_const import GLOBAL_INFILE_SUFFIX
+    from robota.r_const import GLOBAL_INFILE_SUFFIX
     from bptbx import b_iotools
     file_list = b_iotools.findfiles(
         input_dir, '.*\.{}'.format(GLOBAL_INFILE_SUFFIX))
@@ -101,7 +101,7 @@ def get_key_from_url(url):
 
 
 def _get_color(color='white'):
-    from bdatbx.b_const import COLOR_CODES
+    from robota.r_const import COLOR_CODES
     try:
         return COLOR_CODES[color]
     except KeyError:

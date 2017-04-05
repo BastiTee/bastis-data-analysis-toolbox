@@ -33,8 +33,8 @@ cat << EOF > "${workdir}/00-rss-feeds.txt"
 http://www.spiegel.de/index.rss
 EOF
 
-$PY -m bdatbx_test.test_suite
-run_pfx="$PY -m bdatbx_scripts"
+$PY -m robota_test.test_suite
+run_pfx="$PY -m robota_scripts"
 ${run_pfx}.parse_rss_feed -i "${workdir}/00-rss-feeds.txt" -o ${feeds}
 ${run_pfx}.download_website -i ${feeds} -o ${html}
 ${run_pfx}.extract_raw_text_from_website -i ${html} -o ${rawtext}
