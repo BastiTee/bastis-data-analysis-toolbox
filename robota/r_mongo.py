@@ -19,8 +19,10 @@ def consolidate_mongo_key(col, key, if_filter=lambda x: True,
         if isinstance(resultset[0], list):
             resultset = [sub(']$', '', sub('^\[', '', str(result)))
                          for result in resultset]
+    # print(resultset)
     counter = Counter(resultset)
     resultset_stats = r_stats.gather_basic_numerical_stats(resultset)
+    # print(resultset_stats)
     counter_stats = r_stats.gather_basic_numerical_stats(
         list(counter.values()))
     results = {

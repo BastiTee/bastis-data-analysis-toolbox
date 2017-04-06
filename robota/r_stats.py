@@ -9,30 +9,29 @@ def gather_basic_numerical_stats(array):
     array = list(filter(None, array))
 
     _length = len(array)
-    _sum = _min = _max = _mean = _stdev = _median = None
+    _sum = _min = _max = _mean = _stdev = _median = _error = None
 
-    # dont' work with non-numerical arrays
-    is_numeric = False
-    if _length > 0:
-        try:
-            float(array[0])
-            is_numeric = True
-        except ValueError:
-            pass
+    try:
+        # make sure only numeric values in array
+        array = [int(elem) for elem in array if elem]
 
-    if _length > 0 and is_numeric:
-        _sum = sum(array)
-        _min = min(array)
-        _max = max(array)
+        if _length > 0:
+            _sum = sum(array)
+            _min = min(array)
+            _max = max(array)
 
-    if _length > 1 and is_numeric:
-        from statistics import mean, stdev, median
-        _mean = mean(array)
-        _stdev = stdev(array, xbar=None)
-        _median = median(array)
+        if _length > 1:
+            from statistics import mean, stdev, median
+            _mean = mean(array)
+            _stdev = stdev(array, xbar=None)
+            _median = median(array)
 
-    return {
-        'len': _length,
-        'sum': _sum, 'min': _min, 'max': _max,
-        'mean': _mean, 'stdev': _stdev, 'med': _median
-    }
+    except Exception as e:
+        _error = e
+    finally:
+        return {
+            '_error': _error,
+            'len': _length,
+            'sum': _sum, 'min': _min, 'max': _max,
+            'mean': _mean, 'stdev': _stdev, 'med': _median
+        }

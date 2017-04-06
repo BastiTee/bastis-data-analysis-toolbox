@@ -11,6 +11,7 @@ def print_result_statistics(results, label, print_counter=True,
                             print_counter_stats=False):
     """Print a result set."""
     log('\n+++ {} +++'.format(label.upper()), color='green')
+
     log('\nOVERVIEW')
     t = [
         ['total', results['resultset_len']],
@@ -27,6 +28,7 @@ def print_result_statistics(results, label, print_counter=True,
         _print_table(t)
     if print_resultset_stats:
         log('\nRESULTSET STATISTICS')
+        t = []
         for key, value in results['resultset_stats'].items():
             t.append([key, value])
         _print_table(t)
@@ -35,6 +37,7 @@ def print_result_statistics(results, label, print_counter=True,
         t = []
         for key, value in results['counter_stats'].items():
             t.append([key, value])
+
         _print_table(t)
 
 
@@ -44,9 +47,10 @@ def _print_table(table, headers=None, tabs=0):
     tabs = ''.join(['\t' for num in range(tabs)])
     print()
     if headers:
-        log(tabulate(table, headers=headers, tablefmt=def_tablefmt))
+        log(tabulate(table, floatfmt='.2f',
+                     headers=headers, tablefmt=def_tablefmt))
     else:
-        log(tabulate(table, tablefmt=def_tablefmt))
+        log(tabulate(table, floatfmt='.2f', tablefmt=def_tablefmt))
 
 
 def _prepare_for_print(string):

@@ -39,9 +39,10 @@ from robota import r_util
 def _parse_str_date(date_string):
     try:
         date_time_obj = parse(date_string)
+        # print('>>> {}'.format(date_time_obj))
         return date_time_obj
     except Exception as e:
-        print(e)
+        # print('ERR >> {}'.format(e))
         return None
 
 
@@ -211,7 +212,6 @@ def _extract_from_html_tag(parsed_html):
         datetext = _parse_str_date(time.text)
         if datetext:
             return datetext
-
     tag = parsed_html.find("span", {"itemprop": "datePublished"})
     if tag is not None:
         date_text = tag.get("content")
@@ -224,23 +224,45 @@ def _extract_from_html_tag(parsed_html):
     # re.compile(
     # "pubdate|timestamp|post-date|date-header|" +
     #     "article_date|articledate|date"
-    pattern = (
-        'blogheader|pubdate|published|timestamp|post-date|date-header|article_date|' +
-        'articledate|date|theTime')
-    # pattern = ('date-header')
-    for tag in parsed_html.find_all(
-        ['abbr', 'span', 'p', 'div', 'h1', 'h2', 'h3', 'li'],
-            class_=re.compile(pattern, re.IGNORECASE)):
-        date_text = tag.string
-        # print(date_text)
-        if date_text is None:
-            date_text = tag.text
+    elements = ['abbr', 'span', 'p', 'div', 'h1', 'h2', 'h3', 'li']
+    classes = [
+        'blogheader', 'pubdate', 'published', 'timestamp', 'post-date',
+        'date-header', 'article_date', 'articledate', 'date',
+        'content-column', 'one_half', 'theTime']
+    for class_ in classes:
+        for tag in parsed_html.find_all(elements, class_=class_):
+            date_text = tag.string
+            # print(date_text)
+            if date_text is None:
+                date_text = tag.text
 
-        possible_date = _parse_str_date(date_text)
+            possible_date = _parse_str_date(date_text)
 
-        if possible_date is not None:
-            return possible_date
+            if possible_date is not None:
+                return possible_date
 
+    tag_id = [
+        ('small', None),
+        ('div', None),
+    ]
+    for elem, eid in tag_id:
+        for tag in parsed_html.find_all([elem], id=eid):
+            candidate = _get_date_candidates(tag.text)
+            if candidate:
+                return candidate
+
+    return None
+
+
+def _get_date_candidates(string):
+    pattern = re.compile('[0-9]+\.?.{2,10}[0-9]{2,4}')
+    for match in re.findall(pattern, string):
+        if len(match) < 5:
+            continue
+        # print('-- {}'.format(match))
+        date = _parse_str_date(match)
+        if date:
+            return date
     return None
 
 

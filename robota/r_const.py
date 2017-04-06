@@ -24,6 +24,10 @@ DB_TOK_TOKENS = '__tok_tokens'
 DB_TOK_RAWFILE = '__tok_rawfilepath'
 DB_TOK_RAWFILESIZE = '__tok_rawfilesize'
 
+DB_DATE_HR = '__date_humanread'
+DB_DATE_EP = '__date_epoch'
+DB_DATE_HINT = '__date_hint_by'
+
 COLOR_CODES = {
     'red': '31',
     'green': '32',
