@@ -5,6 +5,8 @@ source "$script_dir/base.sh"
 
 stdoutlog "WARNING: Script might prompt for sudo-rights."
 
+sudo apt install git mongodb python3 python3-dev
+
 [ -z $( command -v git ) ] && {
   echo "You need to install git first."
   exit 1
@@ -16,6 +18,8 @@ stdoutlog "$( git --version )"
   exit 1
 }
 stdoutlog "mongo version: $( mongod --version | head -n 1 )"
+
+
 
 PY=$( get_python_com )
 [ -z $PY ] && exit 1
