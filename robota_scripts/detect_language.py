@@ -3,7 +3,7 @@
 """Automatically detect the language of the provided text samples."""
 
 import langdetect
-from bptbx import b_threading, b_iotools
+from bptbx import b_iotools
 from os import path
 from re import findall
 from robota import r_cmdprs, r_const, r_util, r_mongo
@@ -42,24 +42,8 @@ def _worker(filepath, col=None, doc=None):
 
 
 f_handle = open(args.o, 'w')
-pool = b_threading.ThreadPool(1)
-if args.i and not col:
-    in_files = r_util.read_valid_inputfiles(args.i)
-    r_util.setup_progressbar(len(in_files))
-    for in_file in in_files:
-        pool.add_task(_worker, in_file)
-else:
-    r_util.setup_progressbar(r_mongo.get_collection_size(col))
-    cursor = r_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
-    for doc in cursor:
-        html_file = r_mongo.get_key_nullsafe(doc, r_const.DB_TE_RAWFILE)
-        if html_file:
-            in_file = path.join(args.i, html_file)
-            pool.add_task(_worker, in_file, col, doc)
-    cursor.close()
-
-pool.wait_completion()
-r_util.finish_progressbar()
+r_util.process_input_file_with_optional_collection(
+    args, col, r_const.DB_TE_RAWFILE, _worker, threads=1)
 f_handle.close()
 
 

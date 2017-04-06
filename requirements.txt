@@ -5,6 +5,8 @@ scipy >= 0.18.1 # scipy # scipy
 numpy >= 1.6 # numpy # numpy
 langdetect >= 1.0.7 # langdetect # langdetect
 networkx >= 1.11 # networkx # networkx
+pandas >= 0.19.2 # pandas # pandas
+seaborn >= 0.7.1 # seaborn # seaborn
 
 # parsing
 feedparser >= 5.1 # feedparser # feedparser

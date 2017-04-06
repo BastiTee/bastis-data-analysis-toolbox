@@ -3,7 +3,7 @@
 """Extracts the raw main text content from an HTML page."""
 
 from __future__ import with_statement
-from bptbx import b_iotools, b_threading
+from bptbx import b_iotools
 from robota import r_parse, r_const, r_mongo, r_cmdprs, r_util
 from re import findall
 import os
@@ -56,24 +56,8 @@ def _worker(in_file, col=None, doc=None):
         r_util.update_progressbar()
 
 
-pool = b_threading.ThreadPool(args.t)
-if args.i and not col:
-    in_files = r_util.read_valid_inputfiles(args.i)
-    r_util.setup_progressbar(len(in_files))
-    for in_file in in_files:
-        pool.add_task(_worker, in_file)
-else:
-    r_util.setup_progressbar(r_mongo.get_collection_size(col))
-    cursor = r_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
-    for doc in cursor:
-        html_file = r_mongo.get_key_nullsafe(doc, r_const.DB_DL_RAWFILE)
-        if html_file:
-            in_file = os.path.join(args.i, html_file)
-            pool.add_task(_worker, in_file, col, doc)
-    cursor.close()
-
-pool.wait_completion()
-r_util.finish_progressbar()
+r_util.process_input_file_with_optional_collection(
+    args, col, r_const.DB_DL_RAWFILE, _worker)
 
 
 def main():

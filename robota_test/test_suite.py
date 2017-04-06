@@ -96,13 +96,16 @@ class MainTestSuite(unittest.TestCase):
         """Test the r_stats package."""
         from robota import r_stats
         # ------------
-        empty_expected = {'sum': None, 'mean': None, 'min': None,
-                          'len': 0, 'med': None, 'stdev': None, 'max': None}
-        one_entry_expected = {'stdev': None, 'sum': 2, 'med': None, 'len': 1,
-                              'mean': None, 'min': 2, 'max': 2}
-        full_expected = {'max': 323, 'min': 1, 'stdev':
-                         120.40586127166496, 'len': 7, 'med': 6, 'sum': 481,
-                         'mean': 68.71428571428571}
+        empty_expected = {
+            '_error': None, 'sum': None, 'mean': None,
+            'min': None, 'len': 0, 'med': None, 'stdev': None, 'max': None}
+        one_entry_expected = {
+            '_error': None, 'stdev': None, 'sum': 2, 'med': None, 'len': 1,
+            'mean': None, 'min': 2, 'max': 2}
+        full_expected = {
+            '_error': None, 'max': 323, 'min': 1, 'stdev':
+            120.40586127166496, 'len': 7, 'med': 6, 'sum': 481,
+            'mean': 68.71428571428571}
         self.assertEqual(empty_expected,
                          r_stats.gather_basic_numerical_stats(None))
         self.assertEqual(empty_expected,

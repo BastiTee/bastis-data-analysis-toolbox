@@ -98,6 +98,23 @@ def has_doc(col, key, value):
     return False
 
 
+def get_values_from_field_as_list(col, query, fields=[], cast=lambda x: x):
+    """Return values from a single field as list."""
+    if col is None:
+        return  # Bypass database on missing connectivity
+
+    field_filter = {'_id': 0}
+    for field in fields:
+        field_filter[field] = 1
+    cursor = col.find(query, field_filter, modifiers={"$snapshot": True})
+    if len(fields) == 1:
+        mylist = [list(doc.values()) for doc in cursor]
+        mylist = [cast(item) for sublist in mylist for item in sublist]
+    else:
+        mylist = [doc for doc in cursor]
+    return mylist
+
+
 def get_collection_size(col):
     """Return size of collection."""
     if col is None:

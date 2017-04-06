@@ -1,5 +1,34 @@
 """Processing utilities."""
 
+
+def process_input_file_with_optional_collection(args, col, db_file_field,
+                                                worker_method, threads=None):
+    """Process all files from the given folder optionally using mongo data."""
+    from bptbx import b_threading
+    from robota import r_util, r_mongo
+    from os import path
+
+    threads = args.t if not threads else threads
+    r_util.log('Using {} thread(s) for processing...'.format(threads))
+
+    pool = b_threading.ThreadPool(threads)
+    if args.i and not col:
+        in_files = r_util.read_valid_inputfiles(args.i)
+        r_util.setup_progressbar(len(in_files))
+        for in_file in in_files:
+            pool.add_task(worker_method, in_file)
+    else:
+        r_util.setup_progressbar(r_mongo.get_collection_size(col))
+        cursor = r_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
+        for doc in cursor:
+            field = r_mongo.get_key_nullsafe(doc, db_file_field)
+            if field:
+                in_file = path.join(args.i, field)
+                pool.add_task(worker_method, in_file, col, doc)
+        cursor.close()
+    pool.wait_completion()
+    r_util.finish_progressbar()
+
 #############################################################################
 # PRINTING OF RESULTSETS
 #############################################################################
@@ -18,33 +47,33 @@ def print_result_statistics(results, label, print_counter=True,
         ['unique', results['resultset_unique']],
         ['none_vals', results['resultset_none_vals']],
     ]
-    _print_table(t)
+    print_table(t)
 
     if print_counter:
         log('\nCOUNTER')
         t = []
         for tuple in results['counter'].most_common(counter_max):
             t.append([tuple[1], _prepare_for_print(tuple[0])])
-        _print_table(t)
+        print_table(t)
     if print_resultset_stats:
         log('\nRESULTSET STATISTICS')
         t = []
         for key, value in results['resultset_stats'].items():
             t.append([key, value])
-        _print_table(t)
+        print_table(t)
     if print_counter_stats:
         log('\nCOUNTER STATISTICS')
         t = []
         for key, value in results['counter_stats'].items():
             t.append([key, value])
 
-        _print_table(t)
+        print_table(t)
 
 
-def _print_table(table, headers=None, tabs=0):
+def print_table(table, headers=None):
+    """Print the given list of lists using tabulate."""
     from tabulate import tabulate
     def_tablefmt = 'psql'
-    tabs = ''.join(['\t' for num in range(tabs)])
     print()
     if headers:
         log(tabulate(table, floatfmt='.2f',
