@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''tbd.'''
+"""tbd."""
 
 from scipy import stats
 from sys import exit
@@ -9,13 +9,11 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from robota import r_mongo, r_const
-
-
 import pandas as pd
 from numpy.random import randint
 import datetime as dt
 import matplotlib.pyplot as plt
+from robota import r_mongo, r_const
 
 
 col = r_mongo.get_client_for_collection('bonndigital_2017-04-06.sanity')
