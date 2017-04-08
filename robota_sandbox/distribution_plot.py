@@ -13,7 +13,7 @@ import pandas as pd
 from numpy.random import randint
 import datetime as dt
 import matplotlib.pyplot as plt
-from robota import r_mongo, r_const
+from robota import r_mongo, r_const, r_util
 
 
 col = r_mongo.get_client_for_collection('bonndigital_2017-04-06.sanity')
@@ -24,7 +24,7 @@ def _print_df(df):
     print(df.describe())
     print(df.dtypes)
     print(df.index)
-    print('--------')
+    r_util.log('--------')
 
 
 dates = r_mongo.get_values_from_field_as_list(
@@ -36,7 +36,9 @@ df = pd.Series(dates)
 
 _print_df(df)
 
-df = df[abs(stats.zscore(df)) < 0.1]  # filter outlier
+df.sort_values(inplace=True)
+print(df.tail())
+# df = df[abs(stats.zscore(df)) < 0.1]  # filter outlier
 df = pd.to_datetime(df, unit='s')
 df = df.apply(
     lambda df: datetime(year=df.year, month=df.month, day=df.day))
