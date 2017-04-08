@@ -38,7 +38,7 @@ from robota import r_util
 PATTERNS = ['publish', 'date', 'created', 'time']
 
 
-def _parse_str_date(ds, mine, maxe):
+def _parse_str_date(ds, min_epoch, max_epoch):
     try:
         # catch some bad data corner cases
         if ds is None:  # empty strings
@@ -61,27 +61,26 @@ def _parse_str_date(ds, mine, maxe):
         dto = parse(ds)
         epoch = int(dto.strftime('%s'))
 
-        if epoch < mine or epoch > maxe:
+        if epoch < min_epoch or epoch > max_epoch:
             return None
 
         # print('{} >> {} < {} | {}'.format(ds, dto, epoch, valid))
         return dto
     except Exception as e:
-        # print('ERR >> {}'.format(e))
         return None
 
 
-def _extract_from_url(url, mine, maxe):
+def _extract_from_url(url, min_epoch, max_epoch):
 
     matcher = re.search(
         r'([\./\-_]{0,1}(19|20)\d{2})[\./\-_]{0,1}(([0-3]{0,1}[0-9]' +
         '[\./\-_])|(\w{3,5}[\./\-_]))([0-3]{0,1}[0-9][\./\-]{0,1})?', url)
     if matcher:
-        return _parse_str_date(matcher.group(0), mine, maxe)
-    return None
+        return _parse_str_date(matcher.group(0), min_epoch, max_epoch), 'url'
+    return None, None
 
 
-def _extract_from_ldjson(parsed_html, mine, maxe):
+def _extract_from_ldjson(parsed_html, min_epoch, max_epoch):
     try:
         script = parsed_html.find('script', type='application/ld+json')
         if script is None:
@@ -93,7 +92,8 @@ def _extract_from_ldjson(parsed_html, mine, maxe):
                      for pattern in PATTERNS if pattern in json_key]
         for json_key in json_keys:
             try:
-                json_date = _parse_str_date(data[json_key], mine, maxe)
+                json_date = _parse_str_date(
+                    data[json_key], min_epoch, max_epoch)
                 if json_date:
                     return json_date, 'json-ld'
             except Exception as e:
@@ -103,7 +103,7 @@ def _extract_from_ldjson(parsed_html, mine, maxe):
     return None, None
 
 
-def _extract_from_meta(parsed_html, mine, maxe):
+def _extract_from_meta(parsed_html, min_epoch, max_epoch):
 
     for meta_element in parsed_html.findAll('meta'):
         meta_content = meta_element.get('content', '').strip()
@@ -114,30 +114,30 @@ def _extract_from_meta(parsed_html, mine, maxe):
             if meta_element.get(hint, None)])
         for pattern in PATTERNS:
             if pattern in meta_cand:
-                dt = _parse_str_date(meta_content, mine, maxe)
+                dt = _parse_str_date(meta_content, min_epoch, max_epoch)
                 if dt:
                     return dt, 'meta'
     return None, None
 
 
-def _extract_from_html_tag(parsed_html, mine, maxe):
+def _extract_from_html_tag(parsed_html, min_epoch, max_epoch):
     # <time>
     for time in parsed_html.findAll('time'):
         datetime = time.get('datetime', '')
         if len(datetime) > 0:
-            de = _parse_str_date(datetime, mine, maxe)
+            de = _parse_str_date(datetime, min_epoch, max_epoch)
             if de:
-                return de
+                return de, 'html'
 
         datetime = time.get('class', '')
         if len(datetime) > 0 and datetime[0].lower() == 'timestamp':
-            de = _parse_str_date(time.string, mine, maxe)
+            de = _parse_str_date(time.string, min_epoch, max_epoch)
             if de:
-                return de
+                return de, 'html'
 
-        datetext = _parse_str_date(time.text, mine, maxe)
+        datetext = _parse_str_date(time.text, min_epoch, max_epoch)
         if datetext:
-            return datetext
+            return datetext, 'html'
 
     tag = parsed_html.find('span', {'itemprop': 'datePublished'})
     if tag is not None:
@@ -145,18 +145,9 @@ def _extract_from_html_tag(parsed_html, mine, maxe):
         if date_text is None:
             date_text = tag.text
         if date_text is not None:
-            return _parse_str_date(date_text, mine, maxe)
+            return _parse_str_date(date_text, min_epoch, max_epoch), 'html'
 
-    # class=
-    # re.compile(
-    # 'pubdate|timestamp|post-date|date-header|' +
-    #     'article_date|articledate|date'
     elements = ['abbr', 'span', 'p', 'div', 'h1', 'h2', 'h3', 'li']
-    # classes = [
-    #     'blogheader', 'pubdate', 'published', 'timestamp', 'post-date',
-    #     'date-header', 'article_date', 'articledate', 'date',
-    #     'content-column', 'one_half', 'theTime']
-    # for class_ in classes:
     for tag in parsed_html.find_all(elements):
         class_ = None
         try:
@@ -174,33 +165,11 @@ def _extract_from_html_tag(parsed_html, mine, maxe):
         date_text = tag.string
         if date_text is None:
             date_text = tag.text
-        possible_date = _parse_str_date(date_text, mine, maxe)
+        possible_date = _parse_str_date(date_text, min_epoch, max_epoch)
         if possible_date is not None:
-            return possible_date
+            return possible_date, 'html'
 
-#     tag_id = [
-#         # ('small', None),
-#         ('div', None),
-#     ]
-#     for elem, eid in tag_id:
-#         for tag in parsed_html.find_all([elem], id=eid):
-#             candidate = _get_date_candidates(tag.text, mine, maxe)
-#             if candidate:
-#                 return candidate
-#
-#     return None
-#
-#
-# def _get_date_candidates(string, mine, maxe):
-#     pattern = re.compile('[0-9]+\.?.{2,10}[0-9]{2,4}')
-#     for match in re.findall(pattern, string):
-#         print(match)
-#         if len(match) < 5:
-#             continue
-#         date = _parse_str_date(match, mine, maxe)
-#         # if date:
-#             # return date
-#     return None
+    return None, None
 
 
 def extract_article_pubdate(uri, html, min_epoch=0, max_epoch=4102444800):
@@ -208,39 +177,35 @@ def extract_article_pubdate(uri, html, min_epoch=0, max_epoch=4102444800):
 
     By default allowed dates can range between 01.01.1970 and 01.01.2100.
     """
-    if len(html) == 0:
-        raise ValueError('Input HTML is empty')
-    article_date = None
-    date_hint = None
-    # print(uri)
     try:
-        # fallback
-        url_date = _extract_from_url(uri, min_epoch, max_epoch)
-        if url_date:
-            date_hint = 'url'
+        if len(html) == 0:
+            raise ValueError('Input HTML is empty')
 
         parsed_html = BeautifulSoup(html, 'html.parser')
 
-        article_date, hint = _extract_from_ldjson(
+        res_date, res_hint = _extract_from_ldjson(
             parsed_html, min_epoch, max_epoch)
-        if article_date:
-            return article_date, hint
-        article_date, hint = _extract_from_meta(
-            parsed_html, min_epoch, max_epoch)
-        if article_date:
-            return article_date, hint
+        if res_date:
+            return res_date, res_hint
 
-        article_date = _extract_from_html_tag(
+        res_date, res_hint = _extract_from_meta(
             parsed_html, min_epoch, max_epoch)
-        if article_date:
-            return article_date, 'html-tag'
+        if res_date:
+            return res_date, res_hint
 
-        article_date = url_date
+        res_date, res_hint = _extract_from_html_tag(
+            parsed_html, min_epoch, max_epoch)
+        if res_date:
+            return res_date, res_hint
+
+        res_date, res_hint = _extract_from_url(uri, min_epoch, max_epoch)
+        if res_date:
+            return res_date, res_hint
 
     except Exception as e:
         r_util.logerr(e)
 
-    return article_date, date_hint
+    return None, None
 
 
 if __name__ == '__main__':

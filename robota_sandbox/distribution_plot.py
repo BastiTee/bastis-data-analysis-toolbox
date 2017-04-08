@@ -45,7 +45,8 @@ df = df.apply(
 _print_df(df)
 
 
-plt.setp(df.groupby(df.dt.year).count().plot(kind='bar'))
+plot = df.groupby(df.dt.year).count().plot(kind='bar')
+plt.plot(plot.plot())
 plt.show()
 
 mind = datetime(2010, 1, 1)
