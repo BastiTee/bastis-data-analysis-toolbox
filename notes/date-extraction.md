@@ -102,7 +102,8 @@ user    2m3.872s
 sys    0m0.244s
 ```
 
-- Optimized html tag extraction (removed broad scan, generalized tag search) --> Outliers are gone now.
+- Optimized html tag extraction (removed broad scan, generalized tag search)
+- Outliers are gone now.
 
 ```
 +-----------+-----+

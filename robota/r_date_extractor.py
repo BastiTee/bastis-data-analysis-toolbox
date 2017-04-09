@@ -35,7 +35,7 @@ from dateparser import parse
 from bs4 import BeautifulSoup
 from robota import r_util
 
-PATTERNS = ['publish', 'date', 'created', 'time']
+PATTERNS = ['timestamp', 'publish', 'date', 'created', 'time']
 
 
 def _parse_str_date(ds, min_epoch, max_epoch):
@@ -43,7 +43,7 @@ def _parse_str_date(ds, min_epoch, max_epoch):
         # catch some bad data corner cases
         if ds is None:  # empty strings
             return None
-        if ds is None or len(ds) < 4 or len(ds) > 50:  # too long/short strings
+        if len(ds) < 4 or len(ds) > 50:  # too long/short strings
             return None
         if re.search('[0-9]+', ds) is None:  # no numbers in string
             return None
@@ -95,7 +95,7 @@ def _extract_from_ldjson(parsed_html, min_epoch, max_epoch):
                 json_date = _parse_str_date(
                     data[json_key], min_epoch, max_epoch)
                 if json_date:
-                    return json_date, 'json-ld'
+                    return json_date, 'json-ld-{}'.format(json_key)
             except Exception as e:
                 pass
     except Exception as e:
@@ -109,65 +109,65 @@ def _extract_from_meta(parsed_html, min_epoch, max_epoch):
         meta_content = meta_element.get('content', '').strip()
         if not meta_content or len(meta_content) < 4 or len(meta_content) > 50:
             continue
-        meta_cand = ' '.join([meta_element.get(hint) for hint in [
+        meta_cand = ' '.join(set([meta_element.get(hint) for hint in [
             'name', 'property', 'itemprop', 'http-equiv']
-            if meta_element.get(hint, None)])
+            if meta_element.get(hint, None)]))
         for pattern in PATTERNS:
             if pattern in meta_cand:
                 dt = _parse_str_date(meta_content, min_epoch, max_epoch)
                 if dt:
-                    return dt, 'meta'
+                    return dt, 'meta-{}'.format(meta_cand)
     return None, None
 
 
 def _extract_from_html_tag(parsed_html, min_epoch, max_epoch):
-    # <time>
+
     for time in parsed_html.findAll('time'):
         datetime = time.get('datetime', '')
         if len(datetime) > 0:
-            de = _parse_str_date(datetime, min_epoch, max_epoch)
-            if de:
-                return de, 'html'
-
-        datetime = time.get('class', '')
-        if len(datetime) > 0 and datetime[0].lower() == 'timestamp':
-            de = _parse_str_date(time.string, min_epoch, max_epoch)
-            if de:
-                return de, 'html'
-
-        datetext = _parse_str_date(time.text, min_epoch, max_epoch)
-        if datetext:
-            return datetext, 'html'
-
-    tag = parsed_html.find('span', {'itemprop': 'datePublished'})
-    if tag is not None:
-        date_text = tag.get('content')
-        if date_text is None:
-            date_text = tag.text
-        if date_text is not None:
-            return _parse_str_date(date_text, min_epoch, max_epoch), 'html'
+            date_parsed = _parse_str_date(datetime, min_epoch, max_epoch)
+            if date_parsed:
+                return date_parsed, 'html-time-datetime'
+        date_parsed = _parse_str_date(time.text, min_epoch, max_epoch)
+        if date_parsed:
+            return date_parsed, 'html-time-text'
 
     elements = ['abbr', 'span', 'p', 'div', 'h1', 'h2', 'h3', 'li']
     for tag in parsed_html.find_all(elements):
-        class_ = None
+        indicator = None
+        indicator_src = None
         try:
-            class_ = ' '.join(tag['class'])
+            classes = set(tag['class'])
+            indicator = ' '.join(classes)
+            indicator_src = 'class'
         except Exception as e:
             pass
-        if not class_:
+        if not indicator:
+            try:
+                classes = set(tag['itemprop'])
+                indicator = ' '.join(classes)
+                indicator_src = 'itemprop'
+            except Exception as e:
+                pass
+        if not indicator:
             continue
-        good_tag = False
+        useful_indicator = False
         for pattern in PATTERNS:
-            if pattern in class_:
-                good_tag = True
-        if good_tag is False:
+            if pattern in indicator:
+                useful_indicator = True
+                break
+        if useful_indicator is False:
             continue
         date_text = tag.string
-        if date_text is None:
-            date_text = tag.text
-        possible_date = _parse_str_date(date_text, min_epoch, max_epoch)
-        if possible_date is not None:
-            return possible_date, 'html'
+        parsed_date = _parse_str_date(date_text, min_epoch, max_epoch)
+        if parsed_date is not None:
+            return parsed_date, 'html-{}-{}-{}'.format(
+                tag.name, indicator_src, '-'.join(classes))
+        date_text = tag.text
+        parsed_date = _parse_str_date(date_text, min_epoch, max_epoch)
+        if parsed_date is not None:
+            return parsed_date, 'html-{}-{}-{}'.format(
+                tag.name, indicator_src, '-'.join(classes))
 
     return None, None
 
