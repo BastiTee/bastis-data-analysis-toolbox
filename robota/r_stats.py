@@ -1,6 +1,17 @@
 """Methods to gather statistics about the provided input data."""
 
 
+def print_pandas_dataframe(df):
+    """Print basic information about a pandas dataframe."""
+    from robota import r_util
+    r_util.log('-------------------- BEGIN Dataframe', 'blue')
+    r_util.log(str(df.head()), 'blue')
+    r_util.log(str(df.describe()), 'blue')
+    r_util.log(str(df.dtypes), 'blue')
+    r_util.log(str(df.index), 'blue')
+    r_util.log('-------------------- END Dataframe', 'blue')
+
+
 def gather_basic_numerical_stats(array):
     """Calculate basic statistical values about a list of numerical values."""
     if array is None:

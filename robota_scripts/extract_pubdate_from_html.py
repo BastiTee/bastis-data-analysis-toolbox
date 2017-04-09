@@ -28,7 +28,7 @@ def _worker(in_file, col=None, doc=None):
             url = ''
         date, hint = r_date_extractor.extract_article_pubdate(url, raw_html)
 
-        epoch = date.strftime('%s') if date else None
+        epoch = int(date.strftime('%s')) if date else None
 
         if not hint:
             err_handle.write('{}\n'.format(url))

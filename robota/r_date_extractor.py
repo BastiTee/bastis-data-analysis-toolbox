@@ -208,6 +208,13 @@ def extract_article_pubdate(uri, html, min_epoch=0, max_epoch=4102444800):
     return None, None
 
 
+def get_current_epoch():
+    """Return the current epoch."""
+    import calendar
+    import time
+    return calendar.timegm(time.gmtime())
+
+
 if __name__ == '__main__':
     from requests import get
     from sys import argv, exit
