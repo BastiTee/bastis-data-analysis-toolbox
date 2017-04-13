@@ -2,6 +2,8 @@
 
 # German news RSS feeds
 
+- <http://randyzwitch.com/creating-stacked-bar-chart-seaborn/>
+
 ```
 http://www.spiegel.de/index.rss
 http://www.tagesschau.de/xml/rss2
