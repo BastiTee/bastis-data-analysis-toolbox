@@ -1,5 +1,5 @@
 # machine learning
-nltk >= 3.0 # nltk # nltk
+nltk >= 3.2 # nltk # nltk
 gensim >= 0.13 # gensim # gensim
 scipy >= 0.18.1 # scipy # scipy
 numpy >= 1.6 # numpy # numpy

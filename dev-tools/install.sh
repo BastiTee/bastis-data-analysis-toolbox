@@ -5,7 +5,7 @@ source "$script_dir/base.sh"
 
 stdoutlog "WARNING: Script might prompt for sudo-rights."
 
-sudo apt install git mongodb python3 python3-dev
+sudo apt install -y git mongodb python3 python3-dev python3-tk
 
 [ -z $( command -v git ) ] && {
   echo "You need to install git first."
