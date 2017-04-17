@@ -1,12 +1,14 @@
 # machine learning
 nltk >= 3.2 # nltk # nltk
-gensim >= 0.13 # gensim # gensim
-scipy >= 0.18.1 # scipy # scipy
 numpy >= 1.6 # numpy # numpy
-langdetect >= 1.0.7 # langdetect # langdetect
+scipy >= 0.18.1 # scipy # scipy
 networkx >= 1.11 # networkx # networkx
+gensim >= 0.13 # gensim # gensim
+scikit-learn >= 0.18.1 # sklearn # sklearn
 pandas >= 0.19.2 # pandas # pandas
 seaborn >= 0.7.1 # seaborn # seaborn
+langdetect >= 1.0.7 # langdetect # langdetect
+newspaper3k >= 0.1.9 # newspaper # newspaper
 
 # parsing
 feedparser >= 5.1 # feedparser # feedparser
