@@ -4,7 +4,7 @@ export ROBOTA_HOST="localhost"
 export ROBOTA_PORT="50199"
 
 function show_help () {
-echo $@
+  echo $@
 cat << EOF
 Usage: $( basename $0) -i <INPUT_DATA> -t <TEMPLATE> [-h <HOSTNAME>] [-p <PORT>]
 
@@ -14,18 +14,18 @@ Usage: $( basename $0) -i <INPUT_DATA> -t <TEMPLATE> [-h <HOSTNAME>] [-p <PORT>]
   -p <PORT>             Port number (default: $ROBOTA_PORT)
 
 EOF
-exit 1
+  exit 1
 }
 
 while getopts "hi:t:h:p" opt; do
-    case "$opt" in
+  case "$opt" in
     i) export ROBOTA_INPUT="$( readlink -f $OPTARG)";;
     t) export ROBOTA_TEMPLATE="$( readlink -f $OPTARG)";;
     h) export ROBOTA_HOST="$OPTARG";;
     p) export ROBOTA_PORT="$OPTARG";;
     h) show_help;;
     *) echo "Illegal argument."; show_help;;
-	esac
+  esac
 done
 [ -z "$ROBOTA_INPUT" ] && show_help "No input file set."
 [ -z "$ROBOTA_TEMPLATE" ] && show_help "No template file set."
@@ -34,15 +34,15 @@ done
 
 
 cd $( dirname $( readlink -f $0 ))
-echo "-- ROBOTA_HOST     = $ROBOTA_HOST"
-echo "-- ROBOTA_PORT     = $ROBOTA_PORT"
-echo "-- ROBOTA_INPUT    = $ROBOTA_INPUT"
-echo "-- ROBOTA_TEMPLATE = $ROBOTA_TEMPLATE"
+echo "+ ROBOTA_HOST     = $ROBOTA_HOST"
+echo "+ ROBOTA_PORT     = $ROBOTA_PORT"
+echo "+ ROBOTA_INPUT    = $ROBOTA_INPUT"
+echo "+ ROBOTA_TEMPLATE = $ROBOTA_TEMPLATE"
 
 static_dir="django_wrapper/static"
-rm -rvf ${static_dir}
-mkdir -vp ${static_dir}
-cp -v django_wrapper/shared/* ${ROBOTA_INPUT} ${ROBOTA_TEMPLATE} ${static_dir}
+rm -rf ${static_dir}
+mkdir -p ${static_dir}
+cp django_wrapper/shared/* ${ROBOTA_INPUT} ${ROBOTA_TEMPLATE} ${static_dir}
 
 echo "-----------"
 find ${static_dir}
