@@ -1,9 +1,10 @@
 """Django-Wrapper."""
 
 from django.conf.urls import url
-from os import path, environ
-
-print(environ['ROBOTA_HOST'])
+from os import path
+from django.http import HttpResponse
+from django.template import Template, Context
+from os import environ
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 SECRET_KEY = 'secret_key'
@@ -13,8 +14,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_wrapper',
 )
-# print('--- static dir = ' + environ['ROBOTA_STATIC'])
-# STATIC_ROOT = environ['ROBOTA_STATIC']
 STATIC_URL = '/static/'
 ROOT_URLCONF = 'django_wrapper.django'
 LANGUAGE_CODE = 'en-us'
@@ -52,18 +51,19 @@ def _read_file_to_string(filename):
 
 
 class ViewHandler ():
-    """tbd."""
+    """Handles rendering of HTTP responses."""
 
     def get(self, request):
-        """tbd."""
-        from django.http import HttpResponse
-        from django.template import Template, Context
-
-        template_file = path.join(environ['ROBOTA_STATIC'], 'static', 'd3.html')
-        print(template_file)
-        template = _read_file_to_string(template_file)
-        t = Template(template)
-        c = Context({})
+        """Serve GET responses."""
+        template_dir = path.join('django_wrapper', 'static')
+        templates = [
+            _read_file_to_string(path.join(template_dir, 'header.html')),
+            _read_file_to_string(path.join(template_dir,
+                                           environ['ROBOTA_TEMPLATE'])),
+            _read_file_to_string(path.join(template_dir, 'footer.html')),
+        ]
+        t = Template('\n'.join(templates))
+        c = Context({'infile': environ['ROBOTA_INPUT']})
         return HttpResponse(t.render(c))
 
 

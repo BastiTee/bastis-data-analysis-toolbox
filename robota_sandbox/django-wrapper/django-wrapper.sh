@@ -6,16 +6,16 @@ data_dir=$( readlink -f $1 )
 cd $( dirname $( readlink -f $0 ))
 export ROBOTA_HOST="localhost"
 export ROBOTA_PORT="50199"
+export ROBOTA_TEMPLATE="d3.html"
+export ROBOTA_INPUT="input.robota"
 
-echo "-- working-dir = $ROBOTA_STATIC"
-rm -rvf django_wrapper/static
-mkdir -vp django_wrapper/static
-
-# mkdir -vp ${ROBOTA_STATIC}/django_wrapper/static
-cp -v django_wrapper/shared/* ${data_dir}/* django_wrapper/static
+static_dir="django_wrapper/static"
+rm -rvf ${static_dir}
+mkdir -vp ${static_dir}
+cp -v django_wrapper/shared/* ${data_dir}/* ${static_dir}
 
 echo "-----------"
-find django_wrapper/static
+find ${static_dir}
 echo "-----------"
 
 ./manage.py runserver $ROBOTA_HOST:$ROBOTA_PORT --noreload
