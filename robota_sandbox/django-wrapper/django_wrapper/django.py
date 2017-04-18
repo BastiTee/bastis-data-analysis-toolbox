@@ -1,10 +1,9 @@
 """Django-Wrapper."""
 
 from django.conf.urls import url
-from os import path
+from os import path, environ
 from django.http import HttpResponse
 from django.template import Template, Context
-from os import environ
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 SECRET_KEY = 'secret_key'

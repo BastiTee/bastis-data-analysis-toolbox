@@ -42,8 +42,11 @@ echo "+ ROBOTA_TEMPLATE = $ROBOTA_TEMPLATE"
 static_dir="django_wrapper/static"
 rm -rf ${static_dir}
 mkdir -p ${static_dir}
-cp django_wrapper/shared/* ${ROBOTA_INPUT} ${ROBOTA_TEMPLATE} ${static_dir}
-
+copy_com="cp django_wrapper/shared/* \
+${ROBOTA_INPUT} ${ROBOTA_TEMPLATE} ${static_dir}"
+eval $copy_com
+echo "-----------"
+echo $copy_com
 echo "-----------"
 find ${static_dir}
 echo "-----------"
