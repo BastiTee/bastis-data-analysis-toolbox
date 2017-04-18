@@ -10,4 +10,13 @@
 </head>
 
 <body>
+<button id="tosvg" onclick="toSvg()">To SVG</button>
+<script>
+var toSvg = function (){
+    var e = document.createElement("script")
+    e.setAttribute("src", "{% static "svg-crowbar.js" %}")
+    e.setAttribute("class", "svg-crowbar")
+    document.body.appendChild(e)
+}
+</script>
 <div id="content">
