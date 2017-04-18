@@ -42,7 +42,7 @@ do
   error=$( $PY -c "import $package" 2>&1 | grep ImportError )
   [ ! -z "$error" ] && {
     echo "  + package '$package' not yet installed."
-    sudo -H $PY -m pip install -r requirements.txt
+    sudo -H $PY -m pip install -r ${script_dir}/../requirements.txt
     break
   }
 done
