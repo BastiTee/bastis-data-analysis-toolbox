@@ -1,7 +1,9 @@
 """Django-Wrapper."""
 
 from django.conf.urls import url
-from os import path
+from os import path, environ
+
+print(environ['ROBOTA_HOST'])
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 SECRET_KEY = 'secret_key'
@@ -11,6 +13,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_wrapper',
 )
+# print('--- static dir = ' + environ['ROBOTA_STATIC'])
+# STATIC_ROOT = environ['ROBOTA_STATIC']
 STATIC_URL = '/static/'
 ROOT_URLCONF = 'django_wrapper.django'
 LANGUAGE_CODE = 'en-us'
@@ -54,7 +58,10 @@ class ViewHandler ():
         """tbd."""
         from django.http import HttpResponse
         from django.template import Template, Context
-        template = _read_file_to_string('django_wrapper/static/template.html')
+
+        template_file = path.join(environ['ROBOTA_STATIC'], 'static', 'd3.html')
+        print(template_file)
+        template = _read_file_to_string(template_file)
         t = Template(template)
         c = Context({})
         return HttpResponse(t.render(c))

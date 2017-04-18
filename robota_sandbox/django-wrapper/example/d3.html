@@ -23,7 +23,7 @@
             .size([width, height])
             .padding(1.5);
 
-        d3.csv("{% static "vornamen.csv" %}",
+        d3.csv("{% static "input.robota" %}",
             function(d) {
                 d.value = +d.value;
                 if (d.value) return d;
