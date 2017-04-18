@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>D3 Visualization</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="res/favicon.png">
+    <script src="res/jquery-1.12.0.min.js"></script>
+    <script src="res/d3.v4.min.js"></script>
+</head>
+
+<body>
+    <button id="tosvg" onclick="toSvg()">To SVG</button>
+    <script>
+        var toSvg = function() {
+            var e = document.createElement("script")
+            e.setAttribute("src", "res/svg-crowbar.js")
+            e.setAttribute("class", "svg-crowbar")
+            document.body.appendChild(e)
+        }
+    </script>
+    <div id="content"></div>
+    <script>
+        $("#content").load("examples/commits.html");
+    </script>
+</body>
+
+</html>

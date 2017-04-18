@@ -1,0 +1,19 @@
+{
+  "name": "node-html5-boilerplate",
+  "version": "0.1.0",
+  "description": "-",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BastiTee/node-html5-boilerplate"
+  },
+  "author": "Basti Tee",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/BastiTee/node-html5-boilerplate",
+  "dependencies": {
+    "express": "^4.13.4"
+  }
+}

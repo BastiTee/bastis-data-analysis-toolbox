@@ -1,6 +1,6 @@
 # Own additions
 _*/
-
+*node_modules/
 nltk-data/
 notes.md
 bptbx*
