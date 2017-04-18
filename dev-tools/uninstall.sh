@@ -1,15 +1,15 @@
 #!/bin/bash
 
-cd "$( dirname "$( dirname "$( readlink -f $0 )" )" )"
-source "dev-tools/base.sh"
+script_dir="$( dirname "$( readlink -f "$0" )" )"
+source "$script_dir/base.sh"
+is_root
+
 PY=$( get_python_com )
 [ -z $PY ] && exit 1
 
-is_root
-
 stdoutlog "Removing installed dependencies..."
 cat requirements.txt | grep -v -e "^#" | grep "#" |\
-awk '{print $7}' | while read lib
+awk '{print $1}' | while read lib
 do
   $PY -m pip uninstall -y $lib
 done
