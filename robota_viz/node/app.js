@@ -9,8 +9,8 @@
     if (process.argv[2] !== undefined)
         serverPort = process.argv[2];
 
-    function preprocessRequest (request, response, next) {
-        console.log(">>> " + request.path);
+    function preprocessRequest(request, response, next) {
+        // console.log(">>> " + request.path);
         next();
     }
 

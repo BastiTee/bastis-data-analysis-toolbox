@@ -1,0 +1,22 @@
+{% load staticfiles %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>D3 Visualization</title>
+    <link rel="shortcut icon" href="{% static "favicon.png" %}">
+    <link rel="stylesheet" href="{% static "style.css" %}">
+    <script src="{% static "d3.v4.min.js" %}"></script>
+</head>
+
+<body>
+<button id="tosvg" onclick="toSvg()">To SVG</button>
+<script>
+var toSvg = function (){
+    var e = document.createElement("script")
+    e.setAttribute("src", "{% static "svg-crowbar.js" %}")
+    e.setAttribute("class", "svg-crowbar")
+    document.body.appendChild(e)
+}
+</script>
+<div id="content">

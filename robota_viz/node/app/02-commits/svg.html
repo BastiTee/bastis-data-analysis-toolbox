@@ -1,0 +1,117 @@
+<!--
+http://www.d3noob.org/2012/12/setting-scales-domains-and-ranges-in.html
+https://bl.ocks.org/d3noob/96b74d0bd6d11427dd797892551a103c
+https://bl.ocks.org/mbostock/3019563
+http://www.jeromecukier.net/blog/2011/08/11/d3-scales-and-color/
+-->
+<style>
+    #container {
+        height: 400px;
+        background-color: #efefef;
+    }
+    #figure {
+    }
+</style>
+<script>
+    // read and convert the data
+    d3.csv("data.csv", function(error, data) {
+        if (error) throw error;
+
+        var maxDate = new Date(1970, 1, 1)
+        var minDate = new Date(2999, 1, 1)
+        var parseDate = d3.timeParse("%Y-%m-%d");
+
+        data.forEach(function(d) {
+            d.date = parseDate(d.date);
+            if (d.date > maxDate) {
+                maxDate = d.date;
+            }
+            if (d.date < minDate) {
+                minDate = d.date
+            }
+        });
+        visualize(data, minDate, maxDate);
+    });
+
+    function visualize(data, minDate, maxDate) {
+
+        var divDim = d3.select("#container").node().getBoundingClientRect()
+        var margin = {
+            top: 30,
+            right: 30,
+            bottom: 30,
+            left: 30
+        };
+        var width = divDim.width - margin.left - margin.right;
+        var height = divDim.height - margin.top - margin.bottom;
+        var svg = d3.select("#figure")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        // set min and max to desired binning
+        // reset to first of month
+        minDate = new Date(minDate.setDate(1))
+        // reset to first of next month
+        maxDate = new Date(maxDate.setDate(1))
+        maxDate = new Date(maxDate.setMonth(maxDate.getMonth() + 1))
+
+        // create a X-axis scale for times
+        var x = d3.scaleTime().domain([minDate, maxDate])
+            .rangeRound([0, width]);
+        // create a Y-axis scale for linear values
+        var y = d3.scaleLinear().range([height, 0]);
+
+        // set the parameters for the histogram
+        var histogram = d3.histogram().value(
+                // create histogram based on dates
+                function(d) {
+                    return d.date;
+                })
+            .domain(x.domain())
+            .thresholds(x.ticks(d3.timeWeek));
+
+        // group the data for the bars
+        var bins = histogram(data);
+
+        // Scale the range of the data in the y domain
+        var maxVals = d3.max(bins, function(d) {
+            return d.length;
+        });
+        y.domain([0, maxVals + 1]);
+
+        // // append the bar rectangles to the svg element
+        svg.selectAll("rect")
+            .data(bins)
+            .enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", 1)
+            .attr("transform", function(d) {
+                return "translate(" + x(d.x0) + "," + y(d.length) + ")";
+            })
+            .attr("width", function(d) {
+                return x(d.x1) - x(d.x0) - 1;
+            })
+            .attr("height", function(d) {
+                return height - y(d.length);
+            });
+
+        // add the x Axis
+        svg.append("g")
+            // put axis to bottom
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+
+        // add the y Axis
+        svg.append("g").call(d3.axisLeft(y));
+
+        svg.append("text") // text label for the x axis
+            .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.bottom) + ")")
+            .style("text-anchor", "middle")
+            .text("Weeks");
+
+    }
+</script>
