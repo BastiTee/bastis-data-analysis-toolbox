@@ -4,10 +4,8 @@
         height: 700px;
         background-color: black;
     }
-
     #figure {
-        font-family: sans-serif;
-        font-size: 10px;
+        font-size: 11px;
         text-anchor: middle;
     }
 </style>
@@ -28,11 +26,8 @@
         .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
 
-
     var format = d3.format(",d");
-
     var color = d3.scaleOrdinal(d3.schemeCategory20c);
-
     var pack = d3.pack()
         .size([width, height])
         .padding(0.2);

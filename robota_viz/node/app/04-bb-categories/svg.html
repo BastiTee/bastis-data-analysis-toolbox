@@ -1,19 +1,38 @@
-<svg id="figure" width="800" height="800" font-family="sans-serif" font-size="10" text-anchor="middle"></svg>
+<style>
+    #container {
+        width: 700px;
+        height: 700px;
+        background-color: black;
+    }
+    #figure {
+        font-size: 11px;
+        text-anchor: middle;
+    }
+</style>
 <script>
-    var svg = d3.select("#figure"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height");
+    var divDim = d3.select("#container").node().getBoundingClientRect()
+    var margin = {
+        top: 30,
+        right: 30,
+        bottom: 30,
+        left: 30
+    };
+    var width = divDim.width - margin.left - margin.right;
+    var height = divDim.height - margin.top - margin.bottom;
+    var svg = d3.select("#figure")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
 
     var format = d3.format(",d");
-
     var color = d3.scaleOrdinal(d3.schemeCategory20c);
-
     var pack = d3.pack()
         .size([width, height])
-        .padding(1.5);
+        .padding(0.2);
 
-    d3.csv(
-        "{% static infile %}",
+    d3.csv("data.csv",
         function(d) {
             d.value = +d.value;
             if (d.value) return d;
