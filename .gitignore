@@ -5,6 +5,7 @@ nltk-data/
 notes.md
 bptbx*
 robota_sandbox/django-wrapper/django_wrapper/static
+robota_viz/node/pidfile
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
