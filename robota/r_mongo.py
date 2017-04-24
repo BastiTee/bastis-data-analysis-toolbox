@@ -4,13 +4,13 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, DuplicateKeyError
 
 
-def consolidate_mongo_key(col, key, if_filter=lambda x: True,
+def consolidate_mongo_key(col, key, query={}, if_filter=lambda x: True,
                           process_value=lambda x: x):
     """Read a specific key from DB for all docs and create statistics."""
     from re import sub
     from collections import Counter
     from robota import r_stats
-    cur = col.find({}, {key: 1, '_id': 0})
+    cur = col.find(query, {key: 1, '_id': 0})
     resultset = [
         process_value(get_key_nullsafe(doc, key))
         for doc in cur if if_filter(get_key_nullsafe(doc, key))]
