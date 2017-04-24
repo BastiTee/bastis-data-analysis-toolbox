@@ -143,6 +143,11 @@ def delete_doc(col, doc):
     col.delete_one({'_id': doc['_id']})
 
 
+def add_doc(col, doc):
+    """Add the given document to DB."""
+    insert_doc(col, doc)
+
+
 def insert_doc(col, doc):
     """Insert the given document to DB."""
     if col is None:
