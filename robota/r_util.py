@@ -52,8 +52,10 @@ def print_result_statistics(results, label, print_counter=True,
     if print_counter:
         log('\nCOUNTER')
         t = []
+        total = float(sum(results['counter'].values()))
         for tuple in results['counter'].most_common(counter_max):
-            t.append([tuple[1], _prepare_for_print(tuple[0])])
+            ratio = float(tuple[1])/total*100
+            t.append([tuple[1], ratio, _prepare_for_print(tuple[0])])
         print_table(t)
     if print_resultset_stats:
         log('\nRESULTSET STATISTICS')
