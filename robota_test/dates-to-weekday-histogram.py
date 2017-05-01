@@ -3,20 +3,25 @@
 """TPD."""
 
 # import fileinput
-import sys
+from sys import stdin, argv, exit
 from bptbx import b_date
+
+try:
+    date_time_format = argv[1]
+except IndexError:
+    print('No date-time format provided.')
+    exit(1)
 
 res_map = {}
 
-for line in sys.stdin:
+for line in stdin:
     if not line:
         continue
     line = line.strip()
-    try:
-        dto = b_date.timestamp_to_dto(line, "%Y%m%d-%H%M%S")
-    except ValueError:
-        # skip invalid datetimes
-        continue
+    if 'epoch' in date_time_format:
+        dto = b_date.epoch_to_dto(line)
+    else:
+        dto = b_date.timestamp_to_dto(line, date_time_format)
     weekday = int(dto.strftime('%w'))
     if weekday == 0:  # make sunday the 7th day like jebuz would
         weekday = 7
