@@ -40,7 +40,6 @@ def _worker(in_file, col=None, doc=None):
         r_mongo.set_null_safe(doc, r_const.DB_DATE_HINT, hint)
 
     finally:
-        pass
         r_mongo.replace_doc(col, doc)
         r_util.update_progressbar()
 
@@ -48,7 +47,8 @@ def _worker(in_file, col=None, doc=None):
 out_handle = open(args.o, 'w')
 err_handle = open(args.o + '.failed', 'w')
 r_util.process_input_file_with_optional_collection(
-    args, col, r_const.DB_DL_RAWFILE, _worker, threads=1)
+    args, col, r_const.DB_DL_RAWFILE, _worker, threads=1,
+    query={r_const.DB_DL_RAWFILE: {'$ne': None}})
 out_handle.close()
 err_handle.close()
 

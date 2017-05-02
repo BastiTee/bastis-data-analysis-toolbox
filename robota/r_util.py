@@ -1,8 +1,8 @@
 """Processing utilities."""
 
 
-def process_input_file_with_optional_collection(args, col, db_file_field,
-                                                worker_method, threads=None):
+def process_input_file_with_optional_collection(
+        args, col, db_file_field, worker_method, threads=None, query={}):
     """Process all files from the given folder optionally using mongo data."""
     from bptbx import b_threading
     from robota import r_util, r_mongo
@@ -18,8 +18,8 @@ def process_input_file_with_optional_collection(args, col, db_file_field,
         for in_file in in_files:
             pool.add_task(worker_method, in_file)
     else:
-        r_util.setup_progressbar(r_mongo.get_collection_size(col))
-        cursor = r_mongo.get_snapshot_cursor(col, no_cursor_timeout=True)
+        cursor = r_mongo.find_docs(col, query, no_cursor_timeout=True)
+        r_util.setup_progressbar(cursor.count())
         for doc in cursor:
             field = r_mongo.get_key_nullsafe(doc, db_file_field)
             if field:
@@ -54,7 +54,7 @@ def print_result_statistics(results, label, print_counter=True,
         t = []
         total = float(sum(results['counter'].values()))
         for tuple in results['counter'].most_common(counter_max):
-            ratio = float(tuple[1])/total*100
+            ratio = float(tuple[1]) / total * 100
             t.append([tuple[1], ratio, _prepare_for_print(tuple[0])])
         print_table(t)
     if print_resultset_stats:

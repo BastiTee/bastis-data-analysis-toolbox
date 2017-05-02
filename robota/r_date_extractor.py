@@ -172,6 +172,18 @@ def _extract_from_html_tag(parsed_html, min_epoch, max_epoch):
     return None, None
 
 
+def _extract_using_newspaper(html, uri, min_epoch, max_epoch):
+    from newspaper import Article
+    article = Article(uri)
+    article.download(html=html)
+    article.parse()
+    date_text = '{}'.format(article.publish_date)
+    parsed_date = _parse_str_date(date_text, min_epoch, max_epoch)
+    if parsed_date is not None:
+        return parsed_date, 'newspaper'
+    return None, None
+
+
 def extract_article_pubdate(uri, html, min_epoch=0, max_epoch=4102444800):
     """Try to extract the publish date from given URL/HTML content.
 
@@ -198,12 +210,19 @@ def extract_article_pubdate(uri, html, min_epoch=0, max_epoch=4102444800):
         if res_date:
             return res_date, res_hint
 
+        # ---------------------------------------------------------------
+        # res_date, res_hint = _extract_using_newspaper(
+        #     html, uri, min_epoch, max_epoch)
+        # if res_date:
+        #     return res_date, res_hint
+        # --- DEACTIVATED FOR NOW SINCE IT DOESN'T IMPROVE DETECTION RATE
+
         res_date, res_hint = _extract_from_url(uri, min_epoch, max_epoch)
         if res_date:
             return res_date, res_hint
 
     except Exception as e:
-        r_util.logerr(e)
+        r_util.logerr('{} - {}'.format(e, uri))
 
     return None, None
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 
+echo "Script might prompt for sudo-rights. Don't go away."
 script_dir="$( dirname "$( readlink -f "$0" )" )"
 source "$script_dir/base.sh"
-is_root
 
-apt install -y git mongodb python3 python3-dev python3-tk
+sudo -H apt install -y git mongodb python3 python3-dev python3-tk
 
 [ -z $( command -v git ) ] && {
   echo "You need to install git first."
@@ -39,7 +39,7 @@ do
   error=$( $PY -c "import $package" 2>&1 | grep ImportError )
   [ ! -z "$error" ] && {
     echo "  + package '$package' not yet installed."
-    $PY -m pip install -r ${script_dir}/../requirements.txt
+    sudo -H $PY -m pip install -r ${script_dir}/../requirements.txt
     break
   }
 done
