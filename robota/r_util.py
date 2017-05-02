@@ -93,7 +93,7 @@ def _prepare_for_print(string):
     return sub('[\'"]+$', '', sub('^[\'"]+', '', string))
 
 
-def print_map(input_map, value_length_limit=None):
+def print_map(input_map, value_length_limit=0):
     """Print a map to console table-formatted."""
     table = []
     for key in sorted(input_map.keys()):
