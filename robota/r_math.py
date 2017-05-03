@@ -8,7 +8,7 @@ def round_ns(number, digits=0, default_return=None):
     return round(number, digits)
 
 
-def count_and_sort(array, reverse=False, remove_outliers=False):
+def count_and_sort(array, reverse=False, reject_outliers=False, outliers_m=2):
     """Count the elements in the given array and sort by element."""
     amap = {}
     for el in array:
@@ -18,13 +18,13 @@ def count_and_sort(array, reverse=False, remove_outliers=False):
             amap[el] = 0
         amap[el] = amap[el] + 1
 
-    rej = _reject_outliers(list(amap.values()))
+    rej = _reject_outliers(list(amap.values()), m=outliers_m)
     rejmin = min(rej)
     rejmax = max(rej)
     new_array = []
     for sorted_key in sorted(amap.keys(), reverse=reverse):
         count = amap[sorted_key]
-        if count < rejmin or count > rejmax:
+        if (count < rejmin or count > rejmax) and reject_outliers:
             continue
         new_array.append([sorted_key, amap[sorted_key]])
 
