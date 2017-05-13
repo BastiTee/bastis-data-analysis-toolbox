@@ -38,7 +38,7 @@ def score_terms_by_textrank(text, language='german'):
         original_token = token
         token = stemmer.stem(token)
         all_tokens.append(token)
-        if token in stop_words:
+        if token in stop_words or len(token) < 2:
             continue
         if pos_tag not in allowed_pos_tags:
             continue
@@ -91,17 +91,20 @@ def score_terms_by_textrank(text, language='german'):
 
     # merge keywords into keyphrases
     keyphrases = {}
-    j = 0
     for i, word in enumerate(all_tokens):
-        if i < j:
-            continue
         if word in keywords:
-            kp_words = list(itertools.takewhile(
-                lambda x: x in keywords, all_tokens[i:i + 10]))
-            avg_pagerank = sum(word_ranks[w]
-                               for w in kp_words) / float(len(kp_words))
-            keyphrases[' '.join(kp_words)] = avg_pagerank
-            j = i + len(kp_words)
+            keyphrases[word] = word_ranks[word]
+    # j = 0
+    # for i, word in enumerate(all_tokens):
+    #     if i < j:
+    #         continue
+    #     if word in keywords:
+    #         kp_words = list(itertools.takewhile(
+    #             lambda x: x in keywords, all_tokens[i:i + 10]))
+    #         avg_pagerank = sum(word_ranks[w]
+    #                            for w in kp_words) / float(len(kp_words))
+    #         keyphrases[' '.join(kp_words)] = avg_pagerank
+    #         j = i + len(kp_words)
 
     keyphrases_original = {}
     for keyphrase in keyphrases:
@@ -137,6 +140,7 @@ def _pairwise(iterable):
 if __name__ == '__main__':
     import nltk
     from robota import r_parse
+    from bptbx import b_iotools
     from requests import get
     from sys import argv, exit
 
@@ -148,20 +152,18 @@ if __name__ == '__main__':
         print('No URL given.')
         exit(1)
 
-    in_html = None
+    # try reading as html from URL
     try:
         r = get(url, timeout=10)
-        in_html = r.text
+        in_text = r_parse.extract_main_text_content(r.text)
     except Exception as e:
         print('Could not download \'{}\' with error: {}'.format(url, e))
-        exit(1)
-
-    in_text = r_parse.extract_main_text_content(in_html)
+        in_text = '\n'.join(b_iotools.read_file_to_list(url))
 
     terms = score_terms_by_textrank(in_text)
-    # i = 0
+    i = 0
     for term, rank in terms:
         print('{}\t{}'.format(rank, term))
-        # i += 1
-        # if i == 15:
-        #     break
+        i += 1
+        if i == 100:
+            break
