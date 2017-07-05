@@ -142,6 +142,72 @@ def get_key_from_url(url):
     dir_key = file_key[:16]
     return file_key, dir_key
 
+
+def _filter_applies(row, filters):
+    for f in filters:
+        if not f[1](row.get(f[0], None)):
+            return True
+    return False
+
+
+def generate_csv_object(file, header, delimiter=';', quotechar='\"',
+                        encoding='iso-8859-1', filters=[]):
+    """Generate a map from a CSV file and count columns."""
+    from csv import reader, DictReader
+    from collections import Counter
+
+    if not header:
+        # generate dummy fieldnames if no header is present
+        csv_in = reader(open(file, 'r', encoding=encoding),
+                        delimiter=delimiter, quotechar=quotechar)
+        lens = max([len(row) for row in csv_in])
+        fieldnames = list(range(lens))
+    else:
+        fieldnames = None
+
+    csv_in = DictReader(
+        open(file, 'r', encoding=encoding), delimiter=delimiter,
+        quotechar=quotechar, fieldnames=fieldnames)
+
+    # create a list of maps for the input csv
+    res_list = []
+    for row in csv_in:
+        # ... but apply filters
+        if _filter_applies(row, filters):
+            continue
+        else:
+            res_list.append(row)
+
+    # keep the fieldnames
+    res_fields = csv_in.fieldnames
+
+    # count the fields for a quick overview
+    res_counter = {}
+    for fieldname in res_fields:
+        values = [res[fieldname] for res in res_list
+                  if res.get(fieldname, None) is not None]
+        counter = Counter(values)
+        res_counter[fieldname] = counter
+
+    return {
+        'rows': res_list,
+        'fieldnames': res_fields,
+        'fieldcounter': res_counter,
+    }
+
+
+def pretty_print_csv_obj(csv_obj, max_vals=10):
+    """Print a CSV object to console."""
+    for field in csv_obj['fieldnames']:
+        print('\n=== {}\n'.format(field.upper()))
+        c = csv_obj['fieldcounter'][field]
+        print('ORG-FIELDNAME: \'{}\''.format(field))
+        print('TOTAL-COUNT:   {}'.format(sum(c.values())))
+        print('UNIQUE-KEYS:   {}'.format(len(c.keys())))
+        print('TOP {} VALUES:'.format(max_vals))
+        print_table(c.most_common(max_vals))
+
+
 #############################################################################
 # COMMAND-LINE LOGGING
 #############################################################################
