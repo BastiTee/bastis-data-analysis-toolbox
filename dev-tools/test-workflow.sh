@@ -30,7 +30,7 @@ tstats="${workdir}/04-text-stats"
 topics="${workdir}/05-topic-models"
 mkdir -p ${feeds} ${html} ${rawtext} ${tokens} ${tstats} ${topics}
 cat << EOF > "${workdir}/00-rss-feeds.txt"
-http://www.spiegel.de/index.rss
+http://www.faz.net/rss/aktuell/
 EOF
 
 $PY -m robota_test.test_suite

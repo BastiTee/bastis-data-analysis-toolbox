@@ -22,9 +22,6 @@ requests >= 2.12 # requests
 progressbar2 == 3.1 # progressbar
 tabulate >= 0.7.7 # tabulate
 
-# webviz
-django >= 1.11 # django
-
 # persistence
 pymongo >= 3.4.0 # pymongo
 
