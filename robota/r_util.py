@@ -72,16 +72,17 @@ def print_result_statistics(results, label, print_counter=True,
         print_table(t)
 
 
-def print_table(table, headers=None):
+def print_table(table, headers=None, colors=True):
     """Print the given list of lists using tabulate."""
     from tabulate import tabulate
     def_tablefmt = 'psql'
+    print_method = log if colors else print
     print()
     if headers:
-        log(tabulate(table, floatfmt='.2f',
-                     headers=headers, tablefmt=def_tablefmt))
+        print_method(tabulate(table, floatfmt='.2f',
+                              headers=headers, tablefmt=def_tablefmt))
     else:
-        log(tabulate(table, floatfmt='.2f', tablefmt=def_tablefmt))
+        print_method(tabulate(table, floatfmt='.2f', tablefmt=def_tablefmt))
 
 
 def _prepare_for_print(string):
@@ -150,8 +151,17 @@ def _filter_applies(row, filters):
     return False
 
 
+def _apply_search_replace(row, searchreplace):
+    from re import sub
+    if len(searchreplace) == 0:
+        return row
+    for triplet in searchreplace:
+        row[triplet[2]] = sub(triplet[0], triplet[1], row[triplet[2]])
+    return row
+
+
 def generate_csv_object(file, header, delimiter=';', quotechar='\"',
-                        encoding='iso-8859-1', filters=[]):
+                        encoding='iso-8859-1', filters=[], searchreplace=[]):
     """Generate a map from a CSV file and count columns."""
     from csv import reader, DictReader
     from collections import Counter
@@ -176,6 +186,7 @@ def generate_csv_object(file, header, delimiter=';', quotechar='\"',
         if _filter_applies(row, filters):
             continue
         else:
+            _apply_search_replace(row, searchreplace)
             res_list.append(row)
 
     # keep the fieldnames
@@ -205,7 +216,21 @@ def pretty_print_csv_obj(csv_obj, max_vals=10):
         print('TOTAL-COUNT:   {}'.format(sum(c.values())))
         print('UNIQUE-KEYS:   {}'.format(len(c.keys())))
         print('TOP {} VALUES:'.format(max_vals))
-        print_table(c.most_common(max_vals))
+        print_table(c.most_common(max_vals), colors=False)
+
+
+def write_csv_object(csv_obj, file, delimiter=';',
+                     quotechar='\"', encoding='iso-8859-1', header=True):
+    """Write a CSV object to the given file."""
+    from csv import writer, QUOTE_MINIMAL
+    header = csv_obj['fieldnames']
+    file_handle = open(file, 'w', encoding=encoding)
+    csv_writer = writer(file_handle, delimiter=delimiter,
+                        quotechar=quotechar, quoting=QUOTE_MINIMAL)
+    csv_writer.writerow(header)
+    for row in csv_obj['rows']:
+        flat_row = [row[fieldname] for fieldname in csv_obj['fieldnames']]
+        csv_writer.writerow(flat_row)
 
 
 #############################################################################
