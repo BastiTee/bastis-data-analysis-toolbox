@@ -77,12 +77,22 @@ def print_table(table, headers=None, colors=True):
     from tabulate import tabulate
     def_tablefmt = 'psql'
     print_method = log if colors else print
-    print()
+    lines = get_table_string(table, headers)
+    for line in lines:
+        print_method(line)
+
+
+def get_table_string(table, headers=None, colors=True):
+    """Creates a table string for the given list of lists using tabulate."""
+    from tabulate import tabulate
+    def_tablefmt = 'psql'
+    lines = []
     if headers:
-        print_method(tabulate(table, floatfmt='.2f',
+        lines.append(tabulate(table, floatfmt='.2f',
                               headers=headers, tablefmt=def_tablefmt))
     else:
-        print_method(tabulate(table, floatfmt='.2f', tablefmt=def_tablefmt))
+        lines.append(tabulate(table, floatfmt='.2f', tablefmt=def_tablefmt))
+    return lines
 
 
 def _prepare_for_print(string):
@@ -142,96 +152,6 @@ def get_key_from_url(url):
     file_key = file_key + '_' + chksum
     dir_key = file_key[:16]
     return file_key, dir_key
-
-
-def _filter_applies(row, filters):
-    for f in filters:
-        if not f[1](row.get(f[0], None)):
-            return True
-    return False
-
-
-def _apply_search_replace(row, searchreplace):
-    from re import sub
-    if len(searchreplace) == 0:
-        return row
-    for triplet in searchreplace:
-        row[triplet[2]] = sub(triplet[0], triplet[1], row[triplet[2]])
-    return row
-
-
-def generate_csv_object(file, header, delimiter=';', quotechar='\"',
-                        encoding='iso-8859-1', filters=[], searchreplace=[]):
-    """Generate a map from a CSV file and count columns."""
-    from csv import reader, DictReader
-    from collections import Counter
-
-    if not header:
-        # generate dummy fieldnames if no header is present
-        csv_in = reader(open(file, 'r', encoding=encoding),
-                        delimiter=delimiter, quotechar=quotechar)
-        lens = max([len(row) for row in csv_in])
-        fieldnames = list(range(lens))
-    else:
-        fieldnames = None
-
-    csv_in = DictReader(
-        open(file, 'r', encoding=encoding), delimiter=delimiter,
-        quotechar=quotechar, fieldnames=fieldnames)
-
-    # create a list of maps for the input csv
-    res_list = []
-    for row in csv_in:
-        # ... but apply filters
-        if _filter_applies(row, filters):
-            continue
-        else:
-            _apply_search_replace(row, searchreplace)
-            res_list.append(row)
-
-    # keep the fieldnames
-    res_fields = csv_in.fieldnames
-
-    # count the fields for a quick overview
-    res_counter = {}
-    for fieldname in res_fields:
-        values = [res[fieldname] for res in res_list
-                  if res.get(fieldname, None) is not None]
-        counter = Counter(values)
-        res_counter[fieldname] = counter
-
-    return {
-        'rows': res_list,
-        'fieldnames': res_fields,
-        'fieldcounter': res_counter,
-    }
-
-
-def pretty_print_csv_obj(csv_obj, max_vals=10):
-    """Print a CSV object to console."""
-    for field in csv_obj['fieldnames']:
-        print('\n=== {}\n'.format(field.upper()))
-        c = csv_obj['fieldcounter'][field]
-        print('ORG-FIELDNAME: \'{}\''.format(field))
-        print('TOTAL-COUNT:   {}'.format(sum(c.values())))
-        print('UNIQUE-KEYS:   {}'.format(len(c.keys())))
-        print('TOP {} VALUES:'.format(max_vals))
-        print_table(c.most_common(max_vals), colors=False)
-
-
-def write_csv_object(csv_obj, file, delimiter=';',
-                     quotechar='\"', encoding='iso-8859-1', header=True):
-    """Write a CSV object to the given file."""
-    from csv import writer, QUOTE_MINIMAL
-    header = csv_obj['fieldnames']
-    file_handle = open(file, 'w', encoding=encoding)
-    csv_writer = writer(file_handle, delimiter=delimiter,
-                        quotechar=quotechar, quoting=QUOTE_MINIMAL)
-    csv_writer.writerow(header)
-    for row in csv_obj['rows']:
-        flat_row = [row[fieldname] for fieldname in csv_obj['fieldnames']]
-        csv_writer.writerow(flat_row)
-
 
 #############################################################################
 # COMMAND-LINE LOGGING
