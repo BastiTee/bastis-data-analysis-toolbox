@@ -108,3 +108,14 @@ def write_csv_object(csv_obj, file, delimiter=';',
     for row in csv_obj['rows']:
         flat_row = [row[fieldname] for fieldname in csv_obj['fieldnames']]
         csv_writer.writerow(flat_row)
+
+
+def write_array_of_arrays(arrarray, file, delimiter=';',
+                          quotechar='\"', encoding='iso-8859-1', header=True):
+    """Write an array of arrays to the given file."""
+    from csv import writer, QUOTE_MINIMAL
+    file_handle = open(file, 'w', encoding=encoding)
+    csv_writer = writer(file_handle, delimiter=delimiter,
+                        quotechar=quotechar, quoting=QUOTE_MINIMAL)
+    for row in arrarray:
+        csv_writer.writerow(row)
