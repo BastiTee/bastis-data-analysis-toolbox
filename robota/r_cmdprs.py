@@ -119,6 +119,17 @@ def check_opt_file_in(prs, arg, info='Optional file does not exist.'):
     return path.abspath(arg)
 
 
+def add_option(prs, arg, info='Mandatory text value.'):
+    """Add a mandatory input option."""
+    prs.add_argument(arg, metavar='VALUE', help=info)
+
+
+def check_option(prs, arg):
+    """Check the input file option."""
+    if not arg:
+        show_help(prs, 'Mandatory option not set.')
+
+
 def add_verbose(prs):
     """Add verbose option."""
     prs.add_argument('-v', action='store_true',
