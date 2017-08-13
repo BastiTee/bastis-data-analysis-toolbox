@@ -199,11 +199,14 @@ def notify_start(script):
 #############################################################################
 
 
-def setup_progressbar(item_count):
+def setup_progressbar(item_count, verbose=True):
     """Initialize a progressbar."""
     import progressbar
     from threading import Lock
-    global p_bar, p_pointer, p_lock
+    global p_bar, p_pointer, p_lock, p_verbose
+    p_verbose = verbose
+    if not p_verbose:
+        return
     p_bar = progressbar.ProgressBar(max_value=item_count)
     p_pointer = 0
     p_lock = Lock()
@@ -211,7 +214,9 @@ def setup_progressbar(item_count):
 
 def update_progressbar():
     """Update progressbar tick."""
-    global p_bar, p_pointer, p_lock
+    global p_bar, p_pointer, p_lock, p_verbose
+    if not p_verbose:
+        return
     with p_lock:
         if not p_bar:
             return
@@ -221,7 +226,9 @@ def update_progressbar():
 
 def finish_progressbar():
     """Notify finalization of process for progressbar."""
-    global p_bar, p_pointer, p_lock
+    global p_bar, p_pointer, p_lock, p_verbose
+    if not p_verbose:
+        return
     if p_bar:
         p_bar.finish()
     print()
