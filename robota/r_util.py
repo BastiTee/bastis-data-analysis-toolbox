@@ -108,9 +108,9 @@ def print_map(input_map, value_length_limit=0):
     """Print a map to console table-formatted."""
     table = []
     for key in sorted(input_map.keys()):
-        value = input_map[key]
+        value = '{}'.format(input_map[key])
         value_type = type(value).__name__
-        if value_length_limit > 0 and value_type == 'str':
+        if value_length_limit > 0:
             value = value[:value_length_limit]
         table.append([key, value, value_type])
     print_table(table, ['Key', 'Value', 'Type'])
