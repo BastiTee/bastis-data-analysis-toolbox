@@ -4,32 +4,32 @@
 
 from __future__ import with_statement
 
-from bptbx import b_iotools, b_threading
-from robota import r_const, r_parse, r_mongo, r_cmdprs, r_util
+from bptbx import b_iotools, b_threading, b_cmdprs
+from robota import r_const, r_parse, r_mongo, r_util
 from os import path
 import requests
 from requests import exceptions
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = r_cmdprs.init(
+prs = b_cmdprs.init(
     'Dump website content of given feedparse run / linklist to text files. ' +
     'WARN: Options -i, -l, -c are mutual exclusive with ' +
     'Priority: Directory -> URL File -> MongoDB')
-r_cmdprs.add_dir_in(prs, label='Input directory (feedparse files)')
-r_cmdprs.add_opt_file_in(prs, '-l', 'Flat input URL list')
-r_cmdprs.add_dir_out(prs)
-r_cmdprs.add_mongo_collection(prs)
-r_cmdprs.add_max_threads(prs)
-r_cmdprs.add_verbose(prs)
+b_cmdprs.add_dir_in(prs, label='Input directory (feedparse files)')
+b_cmdprs.add_opt_file_in(prs, '-l', 'Flat input URL list')
+b_cmdprs.add_dir_out(prs)
+b_cmdprs.add_mongo_collection(prs)
+b_cmdprs.add_max_threads(prs)
+b_cmdprs.add_verbose(prs)
 args = prs.parse_args()
-args.i = r_cmdprs.check_opt_dir_in(
+args.i = b_cmdprs.check_opt_dir_in(
     prs, args.i, info='Input feedparse directory does not exist!')
-args.l = r_cmdprs.check_opt_file_in(prs, args.l,
+args.l = b_cmdprs.check_opt_file_in(prs, args.l,
                                     info='Input URL list does not exist!')
-col = r_cmdprs.check_mongo_collection(prs, args)
-r_cmdprs.check_dir_out_and_chdir(prs, args)
-r_cmdprs.check_max_threads(prs, args)
+col = b_cmdprs.check_mongo_collection(prs, args)
+b_cmdprs.check_dir_out_and_chdir(prs, args)
+b_cmdprs.check_max_threads(prs, args)
 # -----------------------------------------------------------------------------
 
 

@@ -4,19 +4,20 @@
 
 import feedparser
 from bptbx.b_iotools import read_file_to_list, mkdirs
-from robota import r_cmdprs, r_util, r_const
+from bptbx import b_cmdprs
+from robota import r_util, r_const
 from os import path
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = r_cmdprs.init('Parse RSS feed URLs from file and store raw metadata')
-r_cmdprs.add_file_in(prs)
-r_cmdprs.add_dir_out(prs)
-r_cmdprs.add_bool(prs, '-l', 'Only extract \'link\' tag.')
-r_cmdprs.add_verbose(prs)
+prs = b_cmdprs.init('Parse RSS feed URLs from file and store raw metadata')
+b_cmdprs.add_file_in(prs)
+b_cmdprs.add_dir_out(prs)
+b_cmdprs.add_bool(prs, '-l', 'Only extract \'link\' tag.')
+b_cmdprs.add_verbose(prs)
 args = prs.parse_args()
-r_cmdprs.check_file_in(prs, args)
-r_cmdprs.check_dir_out_and_chdir(prs, args)
+b_cmdprs.check_file_in(prs, args)
+b_cmdprs.check_dir_out_and_chdir(prs, args)
 # -----------------------------------------------------------------------------
 
 input_feeds = read_file_to_list(args.i)

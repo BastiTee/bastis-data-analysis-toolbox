@@ -3,22 +3,22 @@
 """Automatically detect the language of the provided text samples."""
 
 import langdetect
-from bptbx import b_iotools
+from bptbx import b_iotools, b_cmdprs
 from os import path
 from re import findall
-from robota import r_cmdprs, r_const, r_util, r_mongo
+from robota import r_const, r_util, r_mongo
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = r_cmdprs.init(
+prs = b_cmdprs.init(
     'Detect (or best-guess) the language of the given file\'s content')
-r_cmdprs.add_dir_in(prs)
-r_cmdprs.add_mongo_collection(prs)
-r_cmdprs.add_file_out(prs)
+b_cmdprs.add_dir_in(prs)
+b_cmdprs.add_mongo_collection(prs)
+b_cmdprs.add_file_out(prs)
 args = prs.parse_args()
-r_cmdprs.check_dir_in(prs, args)
-r_cmdprs.check_file_out(prs, args)
-col = r_cmdprs.check_mongo_collection(prs, args)
+b_cmdprs.check_dir_in(prs, args)
+b_cmdprs.check_file_out(prs, args)
+col = b_cmdprs.check_mongo_collection(prs, args)
 # -----------------------------------------------------------------------------
 
 

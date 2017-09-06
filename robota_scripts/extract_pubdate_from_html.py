@@ -3,20 +3,20 @@
 """Extracts the raw main text content from an HTML page."""
 
 from __future__ import with_statement
-from bptbx import b_iotools
-from robota import r_const, r_mongo, r_cmdprs, r_util, r_date_extractor
+from bptbx import b_iotools, b_cmdprs
+from robota import r_const, r_mongo, r_util, r_date_extractor
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = r_cmdprs.init('Extract main textual content from HTML to text files.')
-r_cmdprs.add_dir_in(prs)
-r_cmdprs.add_mongo_collection(prs)
-r_cmdprs.add_bool(prs, '-f', 'Only print out URLs with no date extracted.')
-r_cmdprs.add_file_out(prs)
+prs = b_cmdprs.init('Extract main textual content from HTML to text files.')
+b_cmdprs.add_dir_in(prs)
+b_cmdprs.add_mongo_collection(prs)
+b_cmdprs.add_bool(prs, '-f', 'Only print out URLs with no date extracted.')
+b_cmdprs.add_file_out(prs)
 args = prs.parse_args()
-r_cmdprs.check_dir_in(prs, args)
-r_cmdprs.check_file_out(prs, args)
-col = r_cmdprs.check_mongo_collection(prs, args)
+b_cmdprs.check_dir_in(prs, args)
+b_cmdprs.check_file_out(prs, args)
+col = b_cmdprs.check_mongo_collection(prs, args)
 # -----------------------------------------------------------------------------
 
 

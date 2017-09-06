@@ -5,17 +5,17 @@
 from robota import r_preproc
 import os
 import nltk
-from bptbx import b_iotools, b_threading
-from robota import r_cmdprs, r_util, r_mongo, r_const, r_textrank
+from bptbx import b_iotools, b_threading, b_cmdprs
+from robota import r_util, r_mongo, r_const, r_textrank
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = r_cmdprs.init('Print stopwords for a given language.')
-r_cmdprs.add_opt_dir_in(prs, '-n', 'Additional NLTK data directory')
-r_cmdprs.add_option(prs, '-l', 'Language (Mandatory)')
+prs = b_cmdprs.init('Print stopwords for a given language.')
+b_cmdprs.add_opt_dir_in(prs, '-n', 'Additional NLTK data directory')
+b_cmdprs.add_option(prs, '-l', 'Language (Mandatory)')
 args = prs.parse_args()
-args.n = r_cmdprs.check_opt_dir_in(prs, args.n)
-r_cmdprs.check_option(prs, args.l)
+args.n = b_cmdprs.check_opt_dir_in(prs, args.n)
+b_cmdprs.check_option(prs, args.l)
 # -----------------------------------------------------------------------------
 if args.n:
     nltk.data.path.append(args.n)

@@ -6,22 +6,22 @@ from __future__ import with_statement
 
 import os
 import nltk
-from bptbx import b_iotools, b_threading
-from robota import r_cmdprs, r_util, r_mongo, r_const, r_textrank
+from bptbx import b_iotools, b_threading, b_cmdprs
+from robota import r_util, r_mongo, r_const, r_textrank
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = r_cmdprs.init('Tokenize raw text files')
-r_cmdprs.add_dir_in(prs)
-r_cmdprs.add_mongo_collection(prs)
-r_cmdprs.add_max_threads(prs)
-r_cmdprs.add_verbose(prs)
-r_cmdprs.add_opt_dir_in(prs, '-n', 'Additional NLTK data directory')
+prs = b_cmdprs.init('Tokenize raw text files')
+b_cmdprs.add_dir_in(prs)
+b_cmdprs.add_mongo_collection(prs)
+b_cmdprs.add_max_threads(prs)
+b_cmdprs.add_verbose(prs)
+b_cmdprs.add_opt_dir_in(prs, '-n', 'Additional NLTK data directory')
 args = prs.parse_args()
-r_cmdprs.check_dir_in(prs, args)
-args.n = r_cmdprs.check_opt_dir_in(prs, args.n)
-r_cmdprs.check_max_threads(prs, args)
-col = r_cmdprs.check_mongo_collection(prs, args)
+b_cmdprs.check_dir_in(prs, args)
+args.n = b_cmdprs.check_opt_dir_in(prs, args.n)
+b_cmdprs.check_max_threads(prs, args)
+col = b_cmdprs.check_mongo_collection(prs, args)
 # -----------------------------------------------------------------------------
 
 if args.n:
