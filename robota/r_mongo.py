@@ -4,6 +4,25 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, DuplicateKeyError
 
 
+def query_from_to_timestamp(key, from_ts, to_ts, ts_format='%Y-%m-%d'):
+    from bptbx import b_date
+    query = {
+        '$and': [
+            {key:
+                {
+                    '$gt': b_date.timestamp_to_dto(from_ts, ts_format)
+                }
+             },
+            {key:
+                {
+                    '$lt': b_date.timestamp_to_dto(to_ts, ts_format)
+                }
+             }
+        ]
+    }
+    return query
+
+
 def consolidate_mongo_key(col, key, query={}, if_filter=lambda x: True,
                           process_value=lambda x: x):
     """Read a specific key from DB for all docs and create statistics."""
