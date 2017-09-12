@@ -16,7 +16,7 @@ b_cmdprs.add_dir_out(prs)
 b_cmdprs.add_bool(prs, '-l', 'Only extract \'link\' tag.')
 b_cmdprs.add_verbose(prs)
 args = prs.parse_args()
-b_cmdprs.check_file_in(prs, args)
+b_cmdprs.check_file_in(prs, args.i)
 b_cmdprs.check_dir_out_and_chdir(prs, args)
 # -----------------------------------------------------------------------------
 
