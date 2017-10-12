@@ -54,7 +54,5 @@ stdoutlog "configuring nltk"
   done
 }
 
-cd ${script_dir}/..
-$PY -m robota_test.test_suite
+echo "Consider running test-script now..."
 
-echo
