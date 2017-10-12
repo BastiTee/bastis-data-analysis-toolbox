@@ -17,4 +17,3 @@ $PY -m pip uninstall -y robota
 
 stdoutlog "Cleaning local workspace..."
 rm -vrf _* nltk-data
-rm -vf bptbx

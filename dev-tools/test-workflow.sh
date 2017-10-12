@@ -6,6 +6,7 @@ source "dev-tools/base.sh"
 PY=$( get_python_com )
 [ -z $PY ] && { echo "Python not installed."; exit 1; }
 echo "Running python: $( $PY --version )"
+export PYTHONPATH=${PYTHONPATH}:bastis-python-toolbox
 
 [ -z "$1" ] && {
   # create a temporary work directory
