@@ -238,19 +238,19 @@ def finish_progressbar():
 #############################################################################
 
 
-def object_to_json(obj):
+def object_to_file(obj, file, indent=4, explicit_class=True):
+    """Write an object to the given file handle."""
+    import json
+    def_method = _to_json_explicit if explicit_class else _to_json_value
+    json.dump(obj, file, indent=indent, default=def_method)
+
+
+def object_to_json(obj, explicit_class=True):
     """Convert an object to a JSON-string."""
     import json
-    json_string = json.dumps(obj, default=_internal_to_json)
+    def_method = _to_json_explicit if explicit_class else _to_json_value
+    json_string = json.dumps(obj, default=def_method)
     return json_string
-
-
-def _internal_to_json(python_object):
-    import time
-    if isinstance(python_object, time.struct_time):
-        return {'__class__': 'time.asctime',
-                '__value__': time.asctime(python_object)}
-    raise TypeError(repr(python_object) + ' is not JSON serializable')
 
 
 def json_to_object(json_string):
@@ -258,3 +258,31 @@ def json_to_object(json_string):
     import json
     obj = json.loads(json_string)
     return obj
+
+
+def _to_json_value(python_object):
+    return _to_json_impl(python_object, False)
+
+
+def _to_json_explicit(python_object):
+    return _to_json_impl(python_object, True)
+
+
+def _to_json_impl(python_object, explicit):
+    import time
+    import datetime
+    if isinstance(python_object, time.struct_time):
+        value = time.asctime(python_object)
+        if explicit:
+            return {'__class__': 'time.asctime',
+                    '__value__': value}
+        else:
+            return value
+    if isinstance(python_object, datetime.datetime):
+        value = python_object.isoformat()
+        if explicit:
+            return {'__class__': 'time.asctime',
+                    '__value__': value}
+        else:
+            return value
+    raise TypeError(repr(python_object) + ' is not JSON serializable')
