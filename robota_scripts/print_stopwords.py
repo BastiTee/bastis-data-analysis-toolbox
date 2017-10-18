@@ -22,4 +22,4 @@ if args.n:
     r_util.log('added nltk path {}'.format(args.n))
 
 stopwords = r_preproc.get_stopwords_for_language(args.l)
-[ print(stopword) for stopword in stopwords ]
+[print(stopword) for stopword in stopwords]

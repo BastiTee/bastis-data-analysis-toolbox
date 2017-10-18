@@ -27,6 +27,24 @@ def get_allowed_postags(language):
     return apt[language]
 
 
+def stem(tokens, stemmer):
+    stem_2_source_dict = {}
+    stemmed_tokens = []
+    for token in tokens:
+        stem = stemmer.stem(token)
+        stemmed_tokens.append(stem)
+        try:
+            stem_2_source_dict[stem]
+        except KeyError:  # stem never counted
+            stem_2_source_dict[stem] = {}
+        try:
+            token_count = stem_2_source_dict[stem][token]
+            stem_2_source_dict[stem][token] = token_count + 1
+        except KeyError:  # token never counted
+            stem_2_source_dict[stem][token] = 1
+    return stemmed_tokens, stem_2_source_dict
+
+
 def get_stopwords_for_language(language):
     """Return a set of stopwords for the given language."""
     from robota import r_util
@@ -59,6 +77,24 @@ def get_token_sentences(text):
             sentence.append(t)
         token_sentences.append(sentence)
     return token_sentences
+
+
+def remove_nonwords(tokens):
+    from re import match
+    filtered_tokens = []
+    regex = '[a-zA-ZäöüÄÖÜß0-9]+'  # at least one of those must appear
+    for token in tokens:
+        if match(regex, token):
+            filtered_tokens.append(token)
+    return filtered_tokens
+
+
+def stopword_removal(tokens, stopwords):
+    filtered_tokens = []
+    for token in tokens:
+        if token not in stopwords:
+            filtered_tokens.append(token)
+    return filtered_tokens
 
 
 def postag_sentences(tok_sen, language, sanity_print=False):
