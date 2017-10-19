@@ -1,6 +1,15 @@
 """Mathematics convenience functions."""
 
 
+def is_number(candidate):
+    """Return true if given candidate string is a number."""
+    try:
+        float(candidate)
+        return True
+    except ValueError:
+        return False
+
+
 def round_ns(number, digits=0, default_return=None):
     """A wrapper for python's built-in round handling None-input."""
     if number is None:

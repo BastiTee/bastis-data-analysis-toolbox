@@ -27,12 +27,17 @@ def get_allowed_postags(language):
     return apt[language]
 
 
-def stem(tokens, stemmer):
+def stem(tokens, stemmer, skip_pattern=None, skip_process=lambda x: x):
+    from re import match, IGNORECASE
     stem_2_source_dict = {}
     stemmed_tokens = []
     for token in tokens:
-        stem = stemmer.stem(token)
-        stemmed_tokens.append(stem)
+        if not skip_pattern or not match(skip_pattern, token, IGNORECASE):
+            stem = stemmer.stem(token)
+            stemmed_tokens.append(stem)
+        else:
+            stem = skip_process(token)
+            stemmed_tokens.append(stem)
         try:
             stem_2_source_dict[stem]
         except KeyError:  # stem never counted
@@ -43,6 +48,23 @@ def stem(tokens, stemmer):
         except KeyError:  # token never counted
             stem_2_source_dict[stem][token] = 1
     return stemmed_tokens, stem_2_source_dict
+
+
+def sanitize_tokens(tokens, protected_chars=''):
+    from re import sub
+    clean_tokens = []
+    for token in tokens:
+        if not token:
+            continue
+        token = token.strip()
+        bad_chars = '[^a-zA-Z0-9äöüÄÖÜß\-&' + protected_chars + ']'
+        clean_token = sub(bad_chars, '', token)
+        if not clean_token or len(clean_token) == 0:
+            continue
+        # print('{} >> {}'.format(token, clean_token))
+        if clean_token:
+            clean_tokens.append(clean_token)
+    return clean_tokens
 
 
 def get_stopwords_for_language(language):
@@ -79,13 +101,19 @@ def get_token_sentences(text):
     return token_sentences
 
 
-def remove_nonwords(tokens):
+def remove_nonwords(tokens, min_len=0, remove_numbers=False):
     from re import match
-    filtered_tokens = []
-    regex = '[a-zA-ZäöüÄÖÜß0-9]+'  # at least one of those must appear
-    for token in tokens:
-        if match(regex, token):
-            filtered_tokens.append(token)
+    from robota import r_math
+    regex = '.*[a-zA-ZäöüÄÖÜß0-9]+.*'  # at least one of those must appear
+    filtered_tokens = [
+        token for token in tokens
+        if match(regex, token) and len(token) >= min_len
+    ]
+    if remove_numbers:
+        filtered_tokens = [
+            token for token in filtered_tokens
+            if not r_math.is_number(token)
+        ]
     return filtered_tokens
 
 
