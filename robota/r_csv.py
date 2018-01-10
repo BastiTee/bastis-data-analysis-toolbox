@@ -19,7 +19,13 @@ def _apply_search_replace(row, searchreplace):
 
 def generate_csv_object(file, header, delimiter=';', quotechar='\"',
                         encoding='iso-8859-1', filters=[], searchreplace=[]):
-    """Generate a map from a CSV file and count columns."""
+    """Generate a map from a CSV file and count columns.
+
+    - Example for a filter:
+        filters=[
+            ('position', lambda x: int(x) == 1),
+        ])
+    """
     from csv import reader, DictReader
     from collections import Counter
 
