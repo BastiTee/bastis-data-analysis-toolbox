@@ -21,6 +21,10 @@ def generate_csv_object(file, header, delimiter=';', quotechar='\"',
                         encoding='iso-8859-1', filters=[], searchreplace=[]):
     """Generate a map from a CSV file and count columns.
 
+    Recipe:
+    from robota import r_csv
+    csv_in = r_csv.generate_csv_object('file.csv', True, ';', '\"', 'utf-8')
+
     - Example for a filter:
         filters=[
             ('position', lambda x: int(x) == 1),
@@ -118,7 +122,14 @@ def write_csv_object(csv_obj, file, delimiter=';',
 
 def write_array_of_arrays(arrarray, file, delimiter=';',
                           quotechar='\"', encoding='iso-8859-1', header=True):
-    """Write an array of arrays to the given file."""
+    """Write an array of arrays to the given file.
+
+    Recipe:
+    from robota import r_csv
+    r_csv.write_array_of_arrays(
+        datasets, 'file.csv', delimiter=';', quotechar='\"',
+        encoding='utf-8', header=True)
+    """
     from csv import writer, QUOTE_MINIMAL
     file_handle = open(file, 'w', encoding=encoding)
     csv_writer = writer(file_handle, delimiter=delimiter,

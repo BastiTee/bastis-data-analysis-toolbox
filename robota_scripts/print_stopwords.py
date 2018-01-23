@@ -3,10 +3,8 @@
 """Print all known stopwords for a language."""
 
 from robota import r_preproc
-import os
 import nltk
-from bptbx import b_iotools, b_threading, b_cmdprs
-from robota import r_util, r_mongo, r_const, r_textrank
+from bptbx import b_cmdprs, r_util
 
 # ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)

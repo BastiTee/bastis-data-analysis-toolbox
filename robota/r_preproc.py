@@ -1,6 +1,36 @@
 """Functions for preprocessing text data."""
 
 
+def install_nltk_environment():
+    """Run a default NLTK installation procedure.
+
+    This will create a 'nltk-data' folder on your disk in the current
+    working directory."""
+    from nltk import downloader, data as nltk_data
+    from os import path
+    for module in ['averaged_perceptron_tagger', 'stopwords', 'punkt']:
+        downloader.download(module, download_dir='nltk-data', quiet=True)
+    nltk_data.path.append(path.abspath('nltk-data'))
+
+
+def preprocess_string_to_tokens(text, language='english'):
+    """Run a chain of typical preprocessing steps on the given text."""
+    try:
+        tokens = get_token_sentences(text)
+        tokens = [subsubtokens for subtokens in tokens
+                  for subsubtokens in subtokens]
+        tokens = sanitize_tokens(tokens)
+        tokens = remove_nonwords(tokens, 2)
+        sw = get_stopwords_for_language(language, True)
+        tokens = stopword_removal(tokens, sw)
+        stemmer = get_stemmer_for_language(language)
+        tokens = stem(tokens, stemmer)[0]
+        return tokens
+    except LookupError:
+        install_nltk_environment()
+        return preprocess_string_to_tokens(text)
+
+
 def get_stemmer_for_language(language):
     """Return stemmer for given language."""
     import nltk
@@ -67,7 +97,7 @@ def sanitize_tokens(tokens, protected_chars=''):
     return clean_tokens
 
 
-def get_stopwords_for_language(language):
+def get_stopwords_for_language(language, quiet=False):
     """Return a set of stopwords for the given language."""
     from robota import r_util
     from bptbx import b_iotools
@@ -76,8 +106,9 @@ def get_stopwords_for_language(language):
     path = r_util.get_resource_filepath(
         'stopwords_{}_add.txt'.format(language))
     new_stopwords = b_iotools.read_file_to_list(path)
-    r_util.log('Will add {} stopwords from {} to {} stopword list'.format(
-        len(new_stopwords), path, language))
+    if not quiet:
+        r_util.log('Will add {} stopwords from {} to {} stopword list'.format(
+            len(new_stopwords), path, language))
     stop_words = set(stop_words + new_stopwords)
     return stop_words
 

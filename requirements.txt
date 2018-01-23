@@ -10,6 +10,7 @@ matplotlib >= 1.5.3 # matplotlib
 seaborn >= 0.7.1 # seaborn
 langdetect >= 1.0.7 # langdetect
 newspaper3k >= 0.1.9 # newspaper
+editdistance >= 0.4 # editdistance
 
 # parsing
 feedparser >= 5.1 # feedparser
