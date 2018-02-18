@@ -3,32 +3,31 @@
 """Downloads webpages to local file from feedparse, url list or MongoDB."""
 
 from __future__ import with_statement
-
 from bptbx import b_iotools, b_threading, b_cmdprs
 from robota import r_const, r_parse, r_mongo, r_util
 from os import path
 import requests
 from requests import exceptions
 
-# ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
+# ------------------------------------------------------------ CMD-LINE-PARSING
 prs = b_cmdprs.init(
     'Dump website content of given feedparse run / linklist to text files. ' +
     'WARN: Options -i, -l, -c are mutual exclusive with ' +
     'Priority: Directory -> URL File -> MongoDB')
 b_cmdprs.add_dir_in(prs, label='Input directory (feedparse files)')
-b_cmdprs.add_opt_file_in(prs, '-l', 'Flat input URL list')
+b_cmdprs.add_file_in(prs, '-l', 'Flat input URL list')
 b_cmdprs.add_dir_out(prs)
 b_cmdprs.add_mongo_collection(prs)
 b_cmdprs.add_max_threads(prs)
 b_cmdprs.add_verbose(prs)
 args = prs.parse_args()
-args.i = b_cmdprs.check_opt_dir_in(
-    prs, args.i, info='Input feedparse directory does not exist!')
-args.l = b_cmdprs.check_opt_file_in(prs, args.l,
-                                    info='Input URL list does not exist!')
-col = b_cmdprs.check_mongo_collection(prs, args)
-b_cmdprs.check_dir_out_and_chdir(prs, args)
+b_cmdprs.check_file_in(prs, args, 'l', optional=True)
+b_cmdprs.check_dir_in(prs, args, optional=True)
+b_cmdprs.check_dir_out(prs, args, ch_dir=True)
+if not args.i and not args.l:
+    b_cmdprs.show_help(prs, 'Neither URL list nor feedparse files given.')
+b_cmdprs.check_mongo_collection(prs, args)
 b_cmdprs.check_max_threads(prs, args)
 # -----------------------------------------------------------------------------
 
