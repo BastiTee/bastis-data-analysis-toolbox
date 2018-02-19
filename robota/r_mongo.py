@@ -85,11 +85,11 @@ def update_value_nullsafe(col, doc, key, value=None):
     col.update_one({'_id': doc['_id']}, {'$set': {key: value}})
 
 
-def get_snapshot_cursor(col, no_cursor_timeout=False):
+def get_snapshot_cursor(col, query={}, no_cursor_timeout=False):
     """Return a cursor for all documents in collection."""
     if col is None:
         return  # Bypass database on missing connectivity
-    return col.find({}, modifiers={"$snapshot": True},
+    return col.find(query, modifiers={"$snapshot": True},
                     no_cursor_timeout=no_cursor_timeout)
 
 
