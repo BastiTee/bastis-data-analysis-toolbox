@@ -6,17 +6,18 @@ from __future__ import with_statement
 from bptbx import b_iotools, b_cmdprs
 from robota import r_const, r_mongo, r_util, r_date_extractor
 
-# ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = b_cmdprs.init('Extract main textual content from HTML to text files.')
-b_cmdprs.add_dir_in(prs)
-b_cmdprs.add_mongo_collection(prs)
-b_cmdprs.add_bool(prs, '-f', 'Only print out URLs with no date extracted.')
-b_cmdprs.add_file_out(prs)
+
+# ------------------------------------------------------------ CMD-LINE-PARSING
+prs = b_cmdprs.TemplateArgumentParser(
+    description='' +
+    'Extract main textual content from HTML to text files.')
+prs.add_dir_in()
+prs.add_mongo_collection(optional=True)
+prs.add_bool('-f', 'Only print out URLs with no date extracted.')
+prs.add_file_out()
 args = prs.parse_args()
-b_cmdprs.check_dir_in(prs, args)
-b_cmdprs.check_file_out(prs, args)
-col = b_cmdprs.check_mongo_collection(prs, args)
+col = r_mongo.get_client_for_collection(args.c, create=False)
 # -----------------------------------------------------------------------------
 
 

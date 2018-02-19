@@ -8,19 +8,19 @@ from robota import r_parse, r_const, r_mongo, r_util
 from re import findall
 import os
 
-# ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = b_cmdprs.init('Extract main textual content from HTML to text files.')
-b_cmdprs.add_dir_in(prs)
-b_cmdprs.add_mongo_collection(prs)
-b_cmdprs.add_dir_out(prs)
-b_cmdprs.add_max_threads(prs)
-b_cmdprs.add_verbose(prs)
+
+# ------------------------------------------------------------ CMD-LINE-PARSING
+prs = b_cmdprs.TemplateArgumentParser(
+    description='' +
+    'Extract main textual content from HTML to text files.')
+prs.add_dir_in()
+prs.add_mongo_collection(optional=True)
+prs.add_dir_out(ch_dir=True)
+prs.add_max_threads()
+prs.add_verbose()
 args = prs.parse_args()
-b_cmdprs.check_dir_in(prs, args)
-b_cmdprs.check_dir_out_and_chdir(prs, args)
-b_cmdprs.check_max_threads(prs, args)
-col = b_cmdprs.check_mongo_collection(prs, args)
+col = r_mongo.get_client_for_collection(args.c, create=False)
 # -----------------------------------------------------------------------------
 
 

@@ -9,7 +9,7 @@ default_modules = [
     'averaged_perceptron_tagger',
     'stopwords',
     'punkt'
-    ]
+]
 add_modules = argv[1:]
 modules = default_modules + add_modules
 

@@ -8,17 +8,17 @@ from os import path
 from re import findall
 from robota import r_const, r_util, r_mongo
 
-# ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = b_cmdprs.init(
+
+# ------------------------------------------------------------ CMD-LINE-PARSING
+prs = b_cmdprs.TemplateArgumentParser(
+    description='' +
     'Detect (or best-guess) the language of the given file\'s content')
-b_cmdprs.add_dir_in(prs)
-b_cmdprs.add_mongo_collection(prs)
-b_cmdprs.add_file_out(prs)
+prs.add_dir_in()
+prs.add_mongo_collection(optional=True)
+prs.add_file_out()
 args = prs.parse_args()
-b_cmdprs.check_dir_in(prs, args)
-b_cmdprs.check_file_out(prs, args)
-col = b_cmdprs.check_mongo_collection(prs, args)
+col = r_mongo.get_client_for_collection(args.c, create=False)
 # -----------------------------------------------------------------------------
 
 

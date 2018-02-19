@@ -10,25 +10,24 @@ import requests
 from requests import exceptions
 
 r_util.notify_start(__file__)
+
 # ------------------------------------------------------------ CMD-LINE-PARSING
-prs = b_cmdprs.init(
+prs = b_cmdprs.TemplateArgumentParser(
+    description='' +
     'Dump website content of given feedparse run / linklist to text files. ' +
     'WARN: Options -i, -l, -c are mutual exclusive with ' +
     'Priority: Directory -> URL File -> MongoDB')
-b_cmdprs.add_dir_in(prs, label='Input directory (feedparse files)')
-b_cmdprs.add_file_in(prs, '-l', 'Flat input URL list')
-b_cmdprs.add_dir_out(prs)
-b_cmdprs.add_mongo_collection(prs)
-b_cmdprs.add_max_threads(prs)
-b_cmdprs.add_verbose(prs)
+prs.add_file_in('l', 'Flat input URL list', optional=True)
+prs.add_dir_in(help='Input directory (feedparse files)', optional=True)
+prs.add_dir_out(ch_dir=True)
+prs.add_mongo_collection(optional=True)
+prs.add_max_threads()
+prs.add_verbose()
 args = prs.parse_args()
-b_cmdprs.check_file_in(prs, args, 'l', optional=True)
-b_cmdprs.check_dir_in(prs, args, optional=True)
-b_cmdprs.check_dir_out(prs, args, ch_dir=True)
-if not args.i and not args.l:
-    b_cmdprs.show_help(prs, 'Neither URL list nor feedparse files given.')
-b_cmdprs.check_mongo_collection(prs, args)
-b_cmdprs.check_max_threads(prs, args)
+if not args.i and not args.l and not args.c:
+    prs.print_help_and_exit('Neither URL list nor feedparse files or ' +
+                            'mongoDB collection given.')
+col = r_mongo.get_client_for_collection(args.c, create=False)
 # -----------------------------------------------------------------------------
 
 

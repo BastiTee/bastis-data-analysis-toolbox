@@ -9,19 +9,19 @@ import nltk
 from bptbx import b_iotools, b_threading, b_cmdprs
 from robota import r_util, r_mongo, r_const, r_textrank
 
-# ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = b_cmdprs.init('Tokenize raw text files')
-b_cmdprs.add_dir_in(prs)
-b_cmdprs.add_mongo_collection(prs)
-b_cmdprs.add_max_threads(prs)
-b_cmdprs.add_verbose(prs)
-b_cmdprs.add_opt_dir_in(prs, '-n', 'Additional NLTK data directory')
+
+# ------------------------------------------------------------ CMD-LINE-PARSING
+prs = b_cmdprs.TemplateArgumentParser(
+    description='' +
+    'Extract keywords from raw text files')
+prs.add_dir_in()
+prs.add_mongo_collection(optional=True)
+prs.add_max_threads()
+prs.add_verbose()
+prs.add_dir_in('n', 'Additional NLTK data directory', optional=True)
 args = prs.parse_args()
-b_cmdprs.check_dir_in(prs, args)
-args.n = b_cmdprs.check_opt_dir_in(prs, args.n)
-b_cmdprs.check_max_threads(prs, args)
-col = b_cmdprs.check_mongo_collection(prs, args)
+col = r_mongo.get_client_for_collection(args.c, create=False)
 # -----------------------------------------------------------------------------
 
 if args.n:

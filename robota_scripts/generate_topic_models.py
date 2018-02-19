@@ -7,17 +7,17 @@ import gensim.models.word2vec
 from bptbx import b_iotools, b_cmdprs
 from robota import r_util
 
-# ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = b_cmdprs.init('Generate LDA-based topic models')
-b_cmdprs.add_dir_in(prs)
-b_cmdprs.add_dir_out(prs)
-b_cmdprs.add_verbose(prs)
-args = prs.parse_args()
-b_cmdprs.check_dir_in(prs, args)
-b_cmdprs.check_dir_out_and_chdir(prs, args)
-# -----------------------------------------------------------------------------
 
+# ------------------------------------------------------------ CMD-LINE-PARSING
+prs = b_cmdprs.TemplateArgumentParser(
+    description='' +
+    'Generate LDA-based topic models')
+prs.add_dir_in()
+prs.add_dir_out(ch_dir=True)
+prs.add_verbose()
+args = prs.parse_args()
+# -----------------------------------------------------------------------------
 
 lda_topics = 5
 lda_passes = 2

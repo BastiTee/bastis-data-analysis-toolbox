@@ -5,19 +5,22 @@
 import feedparser
 from bptbx.b_iotools import read_file_to_list, mkdirs
 from bptbx import b_cmdprs
-from robota import r_util, r_const
+from robota import r_util, r_const, r_mongo
 from os import path
 
-# ------------------------------------------------------------ CMD-LINE-PARSING
 r_util.notify_start(__file__)
-prs = b_cmdprs.init('Parse RSS feed URLs from file and store raw metadata')
-b_cmdprs.add_file_in(prs)
-b_cmdprs.add_dir_out(prs)
-b_cmdprs.add_bool(prs, '-l', 'Only extract \'link\' tag.')
-b_cmdprs.add_verbose(prs)
+
+# ------------------------------------------------------------ CMD-LINE-PARSING
+prs = b_cmdprs.TemplateArgumentParser(
+    description='' +
+    'Parse RSS feed URLs from file and store raw metadata')
+prs.add_file_in()
+prs.add_dir_out(ch_dir=True)
+prs.add_mongo_collection(optional=True)
+prs.add_bool('l', 'Only extract \'link\' tag.')
+prs.add_verbose()
 args = prs.parse_args()
-b_cmdprs.check_file_in(prs, args.i)
-b_cmdprs.check_dir_out_and_chdir(prs, args)
+col = r_mongo.get_client_for_collection(args.c, create=False)
 # -----------------------------------------------------------------------------
 
 input_feeds = read_file_to_list(args.i)
@@ -36,6 +39,11 @@ for input_feed in input_feeds:
         out_file = open(target_file, 'w')
         out_file.write(r_util.object_to_json(entry))
         out_file.close()
+        if col:
+            r_mongo.add_doc(col, {
+                '_id': fkey,
+                r_const.DB_SOURCE_URI: link
+            })
     r_util.update_progressbar()
 
 r_util.finish_progressbar()

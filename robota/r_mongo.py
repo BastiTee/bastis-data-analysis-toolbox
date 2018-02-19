@@ -196,9 +196,11 @@ def change_id(col, doc, new_id):
     return doc
 
 
-def get_client_for_collection(col_name, create=True):
+def get_client_for_collection(col_name=None, create=True):
     """Return a client for the given collection. Create it if wanted."""
     from robota import r_util
+    if not col_name or col_name == '':
+        return None
     client = MongoClient()
     try:
         client.admin.command('ismaster')
@@ -206,8 +208,12 @@ def get_client_for_collection(col_name, create=True):
         r_util.logerr('Mongodb server not available!')
         return None
     db = client.robota
-    if col_name not in db.collection_names() and not create:
-        r_util.logerr('Collection not present and create-option is disabled.')
-        return None
+    if col_name not in db.collection_names():
+        if not create:
+            r_util.logerr(
+                'Collection not present and create-option is disabled.')
+            return None
+        else:
+            db.create_collection(col_name)
     col = db[col_name]
     return col

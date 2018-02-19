@@ -27,7 +27,7 @@ setup(
     description='''Yet another Python data analysis tool belt.''',
     long_description='''Yet another Python data analysis tool belt.''',
     author='Basti Tee',
-    author_email='basti.tee@gmx.de',
+    author_email='basti.tee@posteo.de',
     url='tbd',
     packages=['robota', 'robota_scripts'],
     package_data={'robota': ['resource/*']},
