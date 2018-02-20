@@ -69,3 +69,14 @@ def intersect(list_a, list_b):
     if list_a is None or list_b is None:
         raise ValueError('Lists cannot be none')
     return list(set(list_a) & set(list_b))
+
+
+def sub_strings_in_list(sr_patterns, list_in):
+    """Take a list of strings and apply given patterns to all elements."""
+    from re import sub
+    list_out = []
+    for el in list_in:
+        for sr_pattern in sr_patterns:
+            el = sub(sr_pattern[0], sr_pattern[1], el)
+        list_out.append(el)
+    return list_out
