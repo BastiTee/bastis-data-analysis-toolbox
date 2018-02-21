@@ -4,7 +4,8 @@ echo "Script might prompt for sudo-rights. Don't go away."
 script_dir="$( dirname "$( readlink -f "$0" )" )"
 source "$script_dir/base.sh"
 
-sudo -H apt install -y git mongodb python3 python3-dev python3-tk libfreetype6-dev libpng12-dev pkg-config
+sudo -H apt install -y git mongodb python3 python3-dev python3-tk \
+    libfreetype6-dev libpng12-0 pkg-config
 
 [ -z $( command -v git ) ] && {
   echo "You need to install git first."
