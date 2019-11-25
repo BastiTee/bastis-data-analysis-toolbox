@@ -25,6 +25,15 @@ venv() {
     pipenv run pip install --editable .
 }
 
+nltk_install() {
+    # Install nltk packages
+    [ ! -d .venv ] && venv
+    for module in averaged_perceptron_tagger stopwords punkt; do
+        pipenv run python -c \
+        "import nltk; nltk.download('$module', download_dir='nltk-data');"
+    done
+}
+
 shell() {
     # Open virtual environment with forced bash shell (required for venv)
     [ ! -d .venv ] && venv
