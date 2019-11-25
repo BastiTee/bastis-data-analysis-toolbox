@@ -44,7 +44,7 @@ shell() {
 clean() {
     # Clean project base by deleting any non-VC files
     rm -rf .venv build dist .ropeproject nltk-data .pytest_cache \
-    *.egg-info
+    *.egg-info _test
 }
 
 test() {
