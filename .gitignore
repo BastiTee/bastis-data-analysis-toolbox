@@ -1,11 +1,10 @@
 # Own additions
 _*/
-*node_modules/
 nltk-data/
-notes.md
-bptbx*
 robota_sandbox/django-wrapper/django_wrapper/static
 robota_viz/node/pidfile
+.venv/
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
