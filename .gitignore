@@ -4,7 +4,7 @@ nltk-data/
 robota_sandbox/django-wrapper/django_wrapper/static
 robota_viz/node/pidfile
 .venv/
-.vscode/
+.ropeproject/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

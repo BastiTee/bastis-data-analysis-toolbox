@@ -23,6 +23,7 @@ venv() {
     rm -rf .venv $PYPE_CONFIG_FOLDER
 	pipenv install --dev --skip-lock
     pipenv run pip install --editable .
+    nltk_install
 }
 
 nltk_install() {
@@ -42,7 +43,8 @@ shell() {
 
 clean() {
     # Clean project base by deleting any non-VC files
-    rm -rf .venv build dist .pytest_cache *.egg-info .pype-cli*
+    rm -rf .venv build dist .ropeproject nltk-data .pytest_cache \
+    *.egg-info
 }
 
 test() {
